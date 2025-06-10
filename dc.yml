@@ -1,0 +1,17 @@
+app:
+    httpPort: 8080
+    logQueries: true
+    ginReleaseMode: false
+    env: "dc"
+
+db:
+    host: database
+    port: 5432
+    username: newsuser
+    password: 123password456
+    database: news-db
+    maxConn: 300
+    minConn: 10
+    maxIdleTime: 10s
+    timezone: Europe/Moscow
+    disableTLS: true
