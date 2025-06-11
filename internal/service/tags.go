@@ -1,5 +1,11 @@
 package service
 
-// func GetTagsByIds(ctx context.Context, ids []int) (map[int]*structs.Tag, error) {
-// 	return repo.GetTagsByIds(ctx, ids)
-// }
+import (
+	"context"
+	repo "news-service/internal/repository"
+	"news-service/internal/structs"
+)
+
+func GetTags(ctx context.Context) ([]*structs.Tag, error) {
+	return repo.GetTags(ctx)
+}

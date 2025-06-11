@@ -16,10 +16,13 @@ import (
 
 func GetNewsByID(ctx context.Context, id int) (*structs.News, error) {
 	n := tables.News
+	c := tables.Categories
 
 	query, args, _ := Q.Select(
 		n.ID,
-		n.CategoryID,
+		c.ID,
+		c.Title.As(`category_title`),
+		c.StatusID.As(`category_status`),
 		n.Title,
 		n.Foreword,
 		n.Content,
@@ -27,7 +30,7 @@ func GetNewsByID(ctx context.Context, id int) (*structs.News, error) {
 		n.CreatedAt,
 		n.PublishedAt,
 		n.StatusID,
-	).From(n.T).Where(n.ID.Eq(id)).ToSQL()
+	).From(n.T).Join(c.T, goqu.On(n.CategoryID.Eq(c.ID))).Where(n.ID.Eq(id)).ToSQL()
 
 	row, err := d.DB.Query(ctx, `get_news_by_id`, query, args...)
 	if err != nil {

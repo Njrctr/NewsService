@@ -6,6 +6,8 @@ import (
 	d "news-service/internal/db"
 	"news-service/internal/db/tables"
 	"news-service/internal/structs"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func GetTagsByIds(ctx context.Context, ids []int) (map[int]*structs.Tag, error) {
@@ -17,7 +19,7 @@ func GetTagsByIds(ctx context.Context, ids []int) (map[int]*structs.Tag, error) 
 		t.StatusID,
 	).From(t.T).Where(t.ID.In(ids)).ToSQL()
 
-	rows, err := d.DB.Query(ctx, `get_tags`, query, args...)
+	rows, err := d.DB.Query(ctx, `get_tags_by_ids`, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("get_tags return error: %w", err)
 	}
@@ -44,4 +46,26 @@ func GetTagsByIds(ctx context.Context, ids []int) (map[int]*structs.Tag, error) 
 	}
 
 	return resMap, nil
+}
+
+func GetTags(ctx context.Context) ([]*structs.Tag, error) {
+	t := tables.Tags
+
+	query, args, _ := Q.Select(
+		t.ID,
+		t.Title,
+		t.StatusID,
+	).From(t.T).ToSQL()
+
+	rows, err := d.DB.Query(ctx, `get_tags`, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("get_tags query return err: %w", err)
+	}
+
+	tags, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[structs.Tag])
+	if err != nil {
+		return nil, fmt.Errorf("get_tags failed to collect rows: %w", err)
+	}
+
+	return tags, nil
 }

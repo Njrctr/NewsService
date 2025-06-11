@@ -1,14 +1,11 @@
 package service
 
-type CategoryRepo interface {
-}
-type CategoryServiceI interface {
-}
+import (
+	"context"
+	repo "news-service/internal/repository"
+	"news-service/internal/structs"
+)
 
-type CategoryService struct {
-	repo CategoryRepo
-}
-
-func NewCategoryService(repo CategoryRepo) *CategoryService {
-	return &CategoryService{repo: repo}
+func GetCategories(ctx context.Context) ([]*structs.Category, error) {
+	return repo.GetCategories(ctx)
 }

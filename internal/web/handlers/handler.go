@@ -15,5 +15,15 @@ func InitRoutes() *gin.Engine {
 		news.GET("/count", getNewsCount) // Получить количество новостей по фильтру
 	}
 
+	tags := router.Group("/tags")
+	{
+		tags.GET("/", getTags) // Получить все теги
+	}
+
+	categories := router.Group("/categories")
+	{
+		categories.GET("/", getCategories) // Получить все категории
+	}
+
 	return router
 }
