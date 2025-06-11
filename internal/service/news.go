@@ -2,14 +2,27 @@ package service
 
 import (
 	"context"
-	"fmt"
 	repo "news-service/internal/repository"
 	"news-service/internal/structs"
 	"news-service/internal/tools"
 )
 
 func GetNewsByID(ctx context.Context, id int) (*structs.News, error) {
-	return repo.GetNewsByID(ctx, id)
+	news, err := repo.GetNewsByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	tags, err := repo.GetTagsByIds(ctx, news.TagIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, tag := range news.TagIDs {
+		news.Tags = append(news.Tags, tags[tag])
+	}
+
+	return news, nil
 }
 func GetNews(ctx context.Context, filter *structs.NewsFilter, pageNum, pageSize uint) ([]*structs.News, error) {
 
@@ -29,9 +42,6 @@ func GetNews(ctx context.Context, filter *structs.NewsFilter, pageNum, pageSize 
 			}
 		}
 	}
-
-	fmt.Println("tagMap:", tagMap)
-	fmt.Println("tagIds:", tagIds)
 
 	tags, err := repo.GetTagsByIds(ctx, tagIds)
 	if err != nil {

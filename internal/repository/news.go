@@ -20,16 +20,17 @@ func GetNewsByID(ctx context.Context, id int) (*structs.News, error) {
 
 	query, args, _ := Q.Select(
 		n.ID,
-		c.ID,
-		c.Title.As(`category_title`),
-		c.StatusID.As(`category_status`),
 		n.Title,
 		n.Foreword,
 		n.Content,
+		n.Author,
 		n.TagIDs,
 		n.CreatedAt,
 		n.PublishedAt,
 		n.StatusID,
+		c.ID.As(`category_id`),
+		c.Title.As(`category_title`),
+		c.StatusID.As(`category_status`),
 	).From(n.T).Join(c.T, goqu.On(n.CategoryID.Eq(c.ID))).Where(n.ID.Eq(id)).ToSQL()
 
 	row, err := d.DB.Query(ctx, `get_news_by_id`, query, args...)
@@ -37,7 +38,45 @@ func GetNewsByID(ctx context.Context, id int) (*structs.News, error) {
 		return nil, err
 	}
 
-	news, err := pgx.CollectOneRow(row, pgx.RowToAddrOfStructByNameLax[structs.News])
+	news, err := pgx.CollectOneRow(row, func(row pgx.CollectableRow) (*structs.News, error) {
+		var (
+			categoryID       int
+			categoryTitle    string
+			categoryStatusID int
+			newsTitle        string
+			newsStatusID     int
+		)
+
+		newsItem := &structs.News{}
+
+		err := row.Scan(
+			&newsItem.ID,
+			&newsTitle,
+			&newsItem.Foreword,
+			&newsItem.Content,
+			&newsItem.Author,
+			&newsItem.TagIDs,
+			&newsItem.CreatedAt,
+			&newsItem.PublishedAt,
+			&newsStatusID,
+			&categoryID,
+			&categoryTitle,
+			&categoryStatusID,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("ошибка сканирования строки: %w", err)
+		}
+
+		newsItem.Category = &structs.Category{
+			ID:       categoryID,
+			Title:    categoryTitle,
+			StatusID: categoryStatusID,
+		}
+		newsItem.Title = newsTitle
+		newsItem.StatusID = newsStatusID
+
+		return newsItem, nil
+	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -55,9 +94,6 @@ func GetNews(ctx context.Context, filter *structs.NewsFilter, offset, limit uint
 	q := Q.Select(
 		n.ID,
 		n.CategoryID,
-		c.ID.As(`category_id`),
-		c.Title.As(`category_title`),
-		c.StatusID.As(`category_status`),
 		n.Title,
 		n.StatusID,
 		n.Foreword,
@@ -65,6 +101,9 @@ func GetNews(ctx context.Context, filter *structs.NewsFilter, offset, limit uint
 		n.TagIDs,
 		n.CreatedAt,
 		n.PublishedAt,
+		c.ID.As(`category_id`),
+		c.Title.As(`category_title`),
+		c.StatusID.As(`category_status`),
 	).From(n.T).Join(c.T, goqu.On(n.CategoryID.Eq(c.ID)))
 
 	var whereSet []exp.Expression
@@ -75,7 +114,7 @@ func GetNews(ctx context.Context, filter *structs.NewsFilter, offset, limit uint
 		whereSet = append(whereSet, n.CategoryID.Eq(filter.TagID))
 	}
 
-	query, args, _ := q.Where(whereSet...).Offset(offset).Limit(limit).ToSQL()
+	query, args, _ := q.Where(whereSet...).Order(n.PublishedAt.Desc()).Offset(offset).Limit(limit).ToSQL()
 
 	rows, err := d.DB.Query(ctx, `get_news`, query, args...)
 	if err != nil {
@@ -83,7 +122,45 @@ func GetNews(ctx context.Context, filter *structs.NewsFilter, offset, limit uint
 		return nil, fmt.Errorf("coalesce error: %w", err)
 	}
 
-	news, err := pgx.CollectRows(rows, newsScanner)
+	news, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (*structs.News, error) {
+		var (
+			categoryID       int
+			categoryTitle    string
+			categoryStatusID int
+			newsTitle        string
+			newsStatusID     int
+		)
+
+		newsItem := &structs.News{}
+
+		err := row.Scan(
+			&newsItem.ID,
+			&newsItem.CategoryID,
+			&newsTitle,
+			&newsStatusID,
+			&newsItem.Foreword,
+			&newsItem.Author,
+			&newsItem.TagIDs,
+			&newsItem.CreatedAt,
+			&newsItem.PublishedAt,
+			&categoryID,
+			&categoryTitle,
+			&categoryStatusID,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("ошибка сканирования строки: %w", err)
+		}
+
+		newsItem.Category = &structs.Category{
+			ID:       categoryID,
+			Title:    categoryTitle,
+			StatusID: categoryStatusID,
+		}
+		newsItem.Title = newsTitle
+		newsItem.StatusID = newsStatusID
+
+		return newsItem, nil
+	})
 	if err != nil {
 		return nil, fmt.Errorf("ошибка сбора строк: %w", err)
 	}

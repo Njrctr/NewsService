@@ -32,3 +32,20 @@ func TestNewsService_GetNews(t *testing.T) {
 		fmt.Printf("news: %d, newsTags:%v\n", news.ID, news.Tags)
 	}
 }
+
+func TestGetNewsByID(t *testing.T) {
+	dbCfg := tools.GetTestDBCfg()
+	ctx := context.Background()
+
+	if err := db.InitDB(ctx, dbCfg); err != nil {
+		log.Fatal(err)
+	}
+
+	got, err := GetNewsByID(ctx, 1)
+	if err != nil {
+		t.Errorf("GetNewsByID() error = %v", err)
+		return
+	}
+
+	fmt.Printf("news: %v, newsTags: %v", got, got.Tags)
+}
