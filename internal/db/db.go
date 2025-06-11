@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	g "news-service/internal/global"
+	"news-service/internal/configs"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -17,39 +17,45 @@ type IDB interface {
 	BeginTx(ctx context.Context, opts pgx.TxOptions) (pgx.Tx, error)
 }
 
-type dbEngine struct {
+var DB *DbEngine
+
+type DbEngine struct {
 	db *pgxpool.Pool
 }
 
-func NewDB(ctx context.Context) (*dbEngine, error) {
+func InitDB(ctx context.Context, cfg *configs.DB) error {
 
-	db, err := connect(ctx)
+	db, err := connect(ctx, cfg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	newDB := &dbEngine{
+	newDB := &DbEngine{
 		db: db,
 	}
 
-	// TODO Добавить пинг БД
-
-	if err = checkTimeZone(ctx, g.Cfg.DB, newDB); err != nil {
-		return nil, err
+	if err := pingRetrying(10, ctx, newDB.Ping); err != nil {
+		return err
 	}
 
-	return newDB, nil
+	if err = checkTimeZone(ctx, cfg, newDB); err != nil {
+		return err
+	}
+
+	DB = newDB
+
+	return nil
 }
 
-func (e *dbEngine) Ping(ctx context.Context) error {
+func (e *DbEngine) Ping(ctx context.Context) error {
 	return e.db.Ping(ctx)
 }
 
-func (e *dbEngine) BeginTx(ctx context.Context, opts pgx.TxOptions) (pgx.Tx, error) {
+func (e *DbEngine) BeginTx(ctx context.Context, opts pgx.TxOptions) (pgx.Tx, error) {
 	return e.db.BeginTx(ctx, opts)
 }
 
-func (e *dbEngine) Query(ctx context.Context, label, query string, args ...any) (pgx.Rows, error) {
+func (e *DbEngine) Query(ctx context.Context, label, query string, args ...any) (pgx.Rows, error) {
 	var err error
 
 	r := &rows{
@@ -62,7 +68,7 @@ func (e *dbEngine) Query(ctx context.Context, label, query string, args ...any) 
 	return r, err
 }
 
-func (e *dbEngine) QueryRow(ctx context.Context, label, query string, args ...any) pgx.Row {
+func (e *DbEngine) QueryRow(ctx context.Context, label, query string, args ...any) pgx.Row {
 	s := &scanner{
 		label: label,
 		start: time.Now(),

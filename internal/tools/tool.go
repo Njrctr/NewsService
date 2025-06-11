@@ -9,5 +9,5 @@ func Pagination(pageNum, pageSize uint) (uint, uint) {
 		pageNum--
 	}
 
-	return pageSize * pageNum, pageNum
+	return pageNum, pageSize * pageNum
 }

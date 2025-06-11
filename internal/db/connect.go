@@ -3,24 +3,25 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
 	"news-service/internal/configs"
-	g "news-service/internal/global"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func connect(ctx context.Context) (*pgxpool.Pool, error) {
-	pcfg, err := pgxpool.ParseConfig(formConnectionString(g.Cfg.DB))
+func connect(ctx context.Context, cfg *configs.DB) (*pgxpool.Pool, error) {
+	pcfg, err := pgxpool.ParseConfig(formConnectionString(cfg))
 	if err != nil {
 		return nil, err
 	}
 
-	pcfg.AfterConnect = afterConnect(g.Cfg.DB)
-	pcfg.MaxConns = g.Cfg.DB.MaxConn
-	pcfg.MinConns = g.Cfg.DB.MinConn
-	pcfg.MaxConnIdleTime = g.Cfg.DB.MaxIdleTime
+	pcfg.AfterConnect = afterConnect(cfg)
+	pcfg.MaxConns = cfg.MaxConn
+	pcfg.MinConns = cfg.MinConn
+	pcfg.MaxConnIdleTime = cfg.MaxIdleTime
 
 	db, err := pgxpool.NewWithConfig(ctx, pcfg)
 	if err != nil {
@@ -35,6 +36,20 @@ func formConnectionString(cfg *configs.DB) string {
 		cfg.Username, cfg.Password, cfg.Host, cfg.Port,
 		cfg.Database,
 	)
+}
+
+func pingRetrying(retries int, ctx context.Context, fn func(context.Context) error) error {
+	var err error
+	for x := range retries {
+		log.Printf("Try to connect DB. Try #%d", x+1)
+		if err = fn(ctx); err != nil {
+			fmt.Println(err)
+			<-time.After(1 * time.Second)
+			continue
+		}
+		return nil
+	}
+	return err
 }
 
 type afterFunc func(ctx context.Context, conn *pgx.Conn) error

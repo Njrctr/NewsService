@@ -6,16 +6,17 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"news-service/internal/configs"
 	g "news-service/internal/global"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Run(ctx context.Context, handlers *gin.Engine) {
+func Run(ctx context.Context, handlers *gin.Engine, cfg *configs.App) {
 
 	srv := &http.Server{
-		Addr:        fmt.Sprintf(":%d", g.Cfg.App.HttpPort),
+		Addr:        fmt.Sprintf(":%d", cfg.HttpPort),
 		Handler:     handlers,
 		BaseContext: func(net.Listener) context.Context { return ctx },
 	}
@@ -26,7 +27,7 @@ func Run(ctx context.Context, handlers *gin.Engine) {
 		defer cancel()
 
 		if err := srv.Shutdown(stopCtx); err != nil {
-
+			g.Errors <- err
 		}
 	}()
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {

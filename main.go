@@ -12,12 +12,13 @@ import (
 	"news-service/internal/configs"
 	"news-service/internal/db"
 	g "news-service/internal/global"
-	"news-service/internal/repository"
-	"news-service/internal/service"
 	"news-service/internal/web"
 	"news-service/internal/web/handlers"
 )
 
+// @title News Service API
+// @version 1.0
+// @description API Server for News
 func main() {
 	ctx, shutdown := context.WithCancel(context.Background())
 
@@ -25,24 +26,21 @@ func main() {
 	flag.StringVar(&configFile, `c`, `.local.yml`, `config file name (*.yml)`)
 	flag.Parse()
 
-	g.Cfg = new(configs.Config)
+	cfg := new(configs.Config)
 
-	if err := configs.LoadConfig(configFile, g.Cfg); err != nil {
+	if err := configs.LoadConfig(configFile, cfg); err != nil {
 		log.Fatal(err)
 	}
 
-	db, err := db.NewDB(ctx)
-	if err != nil {
+	if err := db.InitDB(ctx, cfg.DB); err != nil {
 		log.Fatal(err)
 	}
 
-	repos := repository.NewRepository(db)
-	services := service.NewService(repos)
-	handlers := handlers.NewHandler(services)
+	handlers := handlers.InitRoutes()
 
-	go web.Run(ctx, handlers.InitRoutes())
+	go web.Run(ctx, handlers, cfg.App)
 
-	quit := make(chan os.Signal, 2)
+	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
 
@@ -55,8 +53,9 @@ Loop:
 			break Loop
 		}
 	}
+
 	log.Print("Server is shutting down...")
-	shutdown()
+	shutdown() // TODO Разобрать с GracefullShutdown
 	time.Sleep(1 * time.Second)
 	os.Exit(1)
 }

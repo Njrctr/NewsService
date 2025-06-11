@@ -2,42 +2,51 @@ package service
 
 import (
 	"context"
+	"fmt"
+	repo "news-service/internal/repository"
 	"news-service/internal/structs"
 	"news-service/internal/tools"
 )
 
-type NewsRepo interface {
-	GetNewsByID(ctx context.Context, id int) (*structs.News, error)
-	GetNews(ctx context.Context, filter *structs.NewsFilter, offset, limit uint) ([]*structs.News, error)
-	GetNewsCount(ctx context.Context, filter *structs.NewsFilter) (int, error)
+func GetNewsByID(ctx context.Context, id int) (*structs.News, error) {
+	return repo.GetNewsByID(ctx, id)
 }
+func GetNews(ctx context.Context, filter *structs.NewsFilter, pageNum, pageSize uint) ([]*structs.News, error) {
 
-type NewsServiceI interface {
-	GetNewsByID(ctx context.Context, id int) (*structs.News, error)
-	GetNews(ctx context.Context, filter *structs.NewsFilter, pageNum, pageSize uint) ([]*structs.News, error)
-	GetNewsCount(ctx context.Context, filter *structs.NewsFilter) (int, error)
-}
-
-type NewsService struct {
-	newsRepo NewsRepo
-	tagRepo  TagRepo
-}
-
-func NewNewsService(newsRepo NewsRepo, tagRepo TagRepo) *NewsService {
-	return &NewsService{
-		newsRepo: newsRepo,
-		tagRepo:  tagRepo,
-	}
-}
-
-func (s *NewsService) GetNewsByID(ctx context.Context, id int) (*structs.News, error) {
-	return s.newsRepo.GetNewsByID(ctx, id)
-}
-func (s *NewsService) GetNews(ctx context.Context, filter *structs.NewsFilter, pageNum, pageSize uint) ([]*structs.News, error) {
 	offset, limit := tools.Pagination(pageNum, pageSize)
-	return s.newsRepo.GetNews(ctx, filter, offset, limit)
+	news, err := repo.GetNews(ctx, filter, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	tagMap := make(map[int]struct{})
+	var tagIds []int
+	for _, n := range news {
+		for _, tag := range n.TagIDs {
+			if _, ok := tagMap[tag]; !ok {
+				tagMap[tag] = struct{}{}
+				tagIds = append(tagIds, tag)
+			}
+		}
+	}
+
+	fmt.Println("tagMap:", tagMap)
+	fmt.Println("tagIds:", tagIds)
+
+	tags, err := repo.GetTagsByIds(ctx, tagIds)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, n := range news {
+		for _, tag := range n.TagIDs {
+			n.Tags = append(n.Tags, tags[tag])
+		}
+	}
+
+	return news, nil
 }
 
-func (s *NewsService) GetNewsCount(ctx context.Context, filter *structs.NewsFilter) (int, error) {
-	return s.newsRepo.GetNewsCount(ctx, filter)
+func GetNewsCount(ctx context.Context, filter *structs.NewsFilter) (int, error) {
+	return repo.GetNewsCount(ctx, filter)
 }

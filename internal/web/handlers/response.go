@@ -9,3 +9,5 @@ type errorResponse struct {
 func newErrorResponse(c *gin.Context, statusCode int, message string) {
 	c.AbortWithStatusJSON(statusCode, errorResponse{Message: message})
 }
+
+var serverError = `server error`
