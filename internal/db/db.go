@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"news-service/internal/configs"
+	"errors"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -10,24 +10,63 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type Config struct {
+	Host        string        `yaml:"host"`
+	Port        int           `yaml:"port"`
+	Username    string        `yaml:"username"`
+	Password    string        `yaml:"password"`
+	Database    string        `yaml:"database"`
+	MaxConn     int32         `yaml:"maxConn"`
+	MinConn     int32         `yaml:"minConn"`
+	MaxIdleTime time.Duration `yaml:"maxIdleTime"`
+	TimeZone    string        `yaml:"timezone"`
+	DisableTLS  bool          `yaml:"disableTLS"`
+}
+
+func (c *Config) Validate() error {
+	if c.Host == `` {
+		return errors.New(`empty host`)
+	}
+	if c.Port == 0 {
+		return errors.New(`port is zero`)
+	}
+	if c.Username == `` {
+		return errors.New(`empty username`)
+	}
+	if c.Password == `` {
+		return errors.New(`empty password`)
+	}
+	if c.Database == `` {
+		return errors.New(`empty database`)
+	}
+	if c.MaxConn == 0 {
+		return errors.New(`maxCons is zero`)
+	}
+	if c.MaxIdleTime < time.Second {
+		return errors.New(`maxIdleTime is less than 1 second`)
+	}
+	if c.TimeZone == `` {
+		return errors.New(`empty timezone`)
+	}
+
+	return nil
+}
+
 type IDB interface {
 	Ping(ctx context.Context) error
 	QueryRow(ctx context.Context, label, query string, args ...any) pgx.Row
 	Query(ctx context.Context, label, query string, args ...any) (pgx.Rows, error)
 	BeginTx(ctx context.Context, opts pgx.TxOptions) (pgx.Tx, error)
 }
-
-var DB *DbEngine
-
 type DbEngine struct {
 	db *pgxpool.Pool
 }
 
-func InitDB(ctx context.Context, cfg *configs.DB) error {
+func New(ctx context.Context, cfg *Config) (*DbEngine, error) {
 
 	db, err := connect(ctx, cfg)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	newDB := &DbEngine{
@@ -35,16 +74,14 @@ func InitDB(ctx context.Context, cfg *configs.DB) error {
 	}
 
 	if err := pingRetrying(10, ctx, newDB.Ping); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err = checkTimeZone(ctx, cfg, newDB); err != nil {
-		return err
+		return nil, err
 	}
 
-	DB = newDB
-
-	return nil
+	return newDB, nil
 }
 
 func (e *DbEngine) Ping(ctx context.Context) error {

@@ -2,3 +2,4 @@ docker-compose.yaml
 .local*
 NewsServiceDB.pdd
 newsServiceSQL.sql
+.idea*

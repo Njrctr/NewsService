@@ -1,0 +1,31 @@
+package newsportal
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"news-service/internal/db"
+	"testing"
+)
+
+func TestService_GetCategories(t *testing.T) {
+	cfgDb := db.TestDBCfg()
+	ctx := context.Background()
+
+	dbconn, err := db.New(ctx, cfgDb)
+	if err != nil {
+		log.Fatal(err)
+	}
+	repository := db.NewRepository(dbconn)
+	s := New(repository)
+
+	got, err := s.GetCategories(ctx)
+	if err != nil {
+		t.Errorf("Service.GetCategories() error = %v", err)
+		return
+	}
+
+	for _, c := range got {
+		fmt.Println(c)
+	}
+}

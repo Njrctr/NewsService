@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"news-service/internal/configs"
 	"strings"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func connect(ctx context.Context, cfg *configs.DB) (*pgxpool.Pool, error) {
+func connect(ctx context.Context, cfg *Config) (*pgxpool.Pool, error) {
 	pcfg, err := pgxpool.ParseConfig(formConnectionString(cfg))
 	if err != nil {
 		return nil, err
@@ -31,7 +30,7 @@ func connect(ctx context.Context, cfg *configs.DB) (*pgxpool.Pool, error) {
 	return db, nil
 }
 
-func formConnectionString(cfg *configs.DB) string {
+func formConnectionString(cfg *Config) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s",
 		cfg.Username, cfg.Password, cfg.Host, cfg.Port,
 		cfg.Database,
@@ -54,7 +53,7 @@ func pingRetrying(retries int, ctx context.Context, fn func(context.Context) err
 
 type afterFunc func(ctx context.Context, conn *pgx.Conn) error
 
-func afterConnect(cfg *configs.DB) afterFunc {
+func afterConnect(cfg *Config) afterFunc {
 	return func(ctx context.Context, conn *pgx.Conn) error {
 		if _, err := conn.Exec(ctx, fmt.Sprintf(`set time zone '%s';`, cfg.TimeZone)); err != nil {
 			return err
@@ -64,7 +63,7 @@ func afterConnect(cfg *configs.DB) afterFunc {
 	}
 }
 
-func checkTimeZone(ctx context.Context, cfg *configs.DB, db IDB) error {
+func checkTimeZone(ctx context.Context, cfg *Config, db IDB) error {
 	var tz string
 
 	if err := db.QueryRow(ctx, `check_time_zone`, `select current_setting('TIMEZONE')`).Scan(&tz); err != nil {

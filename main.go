@@ -4,16 +4,13 @@ import (
 	"context"
 	"flag"
 	"log"
+	"news-service/internal/app"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"news-service/internal/configs"
 	"news-service/internal/db"
-	g "news-service/internal/global"
-	"news-service/internal/web"
-	"news-service/internal/web/handlers"
 )
 
 // @title News Service API
@@ -26,36 +23,28 @@ func main() {
 	flag.StringVar(&configFile, `c`, `.local.yml`, `config file name (*.yml)`)
 	flag.Parse()
 
-	cfg := new(configs.Config)
-
-	if err := configs.LoadConfig(configFile, cfg); err != nil {
+	cfg, err := app.LoadConfig(configFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dbconn, err := db.New(ctx, cfg.DB)
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := db.InitDB(ctx, cfg.DB); err != nil {
-		log.Fatal(err)
-	}
-
-	handlers := handlers.InitRoutes()
-
-	go web.Run(ctx, handlers, cfg.App)
+	a := app.New(cfg, dbconn)
+	go func() {
+		if err := a.Run(ctx); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
 
-Loop:
-	for {
-		select {
-		case err := <-g.Errors:
-			log.Fatalf("fatal err:%s", err.Error())
-		case <-quit:
-			break Loop
-		}
-	}
-
 	log.Print("Server is shutting down...")
-	shutdown() // TODO Разобрать с GracefullShutdown
+	shutdown()
 	time.Sleep(1 * time.Second)
 	os.Exit(1)
 }
