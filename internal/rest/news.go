@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 	"news-service/internal/newsportal"
 	"strconv"
@@ -56,6 +57,7 @@ func (h *Handler) getNews(c *gin.Context) {
 		return
 	}
 
+	fmt.Println(req.PageNum, req.PageSize)
 	news, err := h.services.NewsByFilters(c,
 		&newsportal.NewsFilter{
 			CategoryID: req.CategoryID,

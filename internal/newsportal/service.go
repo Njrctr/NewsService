@@ -40,12 +40,13 @@ func (s *Service) GetCategories(ctx context.Context) ([]Category, error) {
 
 func pagination(pageNum, pageSize int) (int, int) {
 	if pageSize == 0 {
-		pageSize = 5 // Дефолтный размер страницы
+		pageSize = 5
 	}
 
-	if pageNum > 0 {
-		pageNum--
+	page := pageNum
+	if page > 0 {
+		page--
 	}
 
-	return pageNum, pageSize * pageNum
+	return pageSize * page, pageSize
 }

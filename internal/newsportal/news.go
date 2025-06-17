@@ -2,6 +2,7 @@ package newsportal
 
 import (
 	"context"
+	"fmt"
 	"news-service/internal/db"
 )
 
@@ -35,6 +36,7 @@ func (s *Service) NewsByID(ctx context.Context, id int) (*News, error) {
 func (s *Service) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum, pageSize int) ([]News, error) {
 
 	offset, limit := pagination(pageNum, pageSize)
+	fmt.Println(offset, limit)
 	news, err := s.repo.NewsByFilters(ctx, &db.NewsFilter{filter.CategoryID, filter.TagID}, offset, limit)
 	if err != nil {
 		return nil, err
