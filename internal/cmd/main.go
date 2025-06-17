@@ -3,14 +3,16 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"github.com/BurntSushi/toml"
+	"github.com/k0kubun/pp"
 	"log"
 	"news-service/internal/app"
+	"news-service/internal/db"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"news-service/internal/db"
 )
 
 // @title News Service API
@@ -20,13 +22,14 @@ func main() {
 	ctx, shutdown := context.WithCancel(context.Background())
 
 	var configFile string
-	flag.StringVar(&configFile, `c`, `.local.yml`, `config file name (*.yml)`)
+	flag.StringVar(&configFile, `c`, `internal/cfg/.local.toml`, `config file name (*.toml)`)
 	flag.Parse()
 
-	cfg, err := app.LoadConfig(configFile)
+	cfg, err := loadConfig(configFile)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	dbconn, err := db.New(ctx, cfg.DB)
 	if err != nil {
 		log.Fatal(err)
@@ -47,4 +50,18 @@ func main() {
 	shutdown()
 	time.Sleep(1 * time.Second)
 	os.Exit(1)
+}
+
+func loadConfig(configFile string) (*app.Config, error) {
+	cfg := &app.Config{}
+	_, err := toml.DecodeFile(configFile, cfg)
+	if err != nil {
+		return nil, err
+	}
+	if err := cfg.Validate(); err != nil {
+		return nil, err
+	}
+	fmt.Printf("current config: \n\n%s\n", pp.Sprint(cfg))
+
+	return cfg, nil
 }

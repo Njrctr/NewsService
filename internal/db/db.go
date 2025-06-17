@@ -10,20 +10,20 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Config struct {
-	Host        string        `yaml:"host"`
-	Port        int           `yaml:"port"`
-	Username    string        `yaml:"username"`
-	Password    string        `yaml:"password"`
-	Database    string        `yaml:"database"`
-	MaxConn     int32         `yaml:"maxConn"`
-	MinConn     int32         `yaml:"minConn"`
-	MaxIdleTime time.Duration `yaml:"maxIdleTime"`
-	TimeZone    string        `yaml:"timezone"`
-	DisableTLS  bool          `yaml:"disableTLS"`
+type DBConfig struct {
+	Host        string        `toml:"host"`
+	Port        int           `toml:"port"`
+	Username    string        `toml:"username"`
+	Password    string        `toml:"password"`
+	Database    string        `toml:"database"`
+	MaxConn     int32         `toml:"maxConn"`
+	MinConn     int32         `toml:"minConn"`
+	MaxIdleTime time.Duration `toml:"maxIdleTime"`
+	TimeZone    string        `toml:"timezone"`
+	DisableTLS  bool          `toml:"disableTLS"`
 }
 
-func (c *Config) Validate() error {
+func (c *DBConfig) Validate() error {
 	if c.Host == `` {
 		return errors.New(`empty host`)
 	}
@@ -62,7 +62,7 @@ type DbEngine struct {
 	db *pgxpool.Pool
 }
 
-func New(ctx context.Context, cfg *Config) (*DbEngine, error) {
+func New(ctx context.Context, cfg *DBConfig) (*DbEngine, error) {
 
 	db, err := connect(ctx, cfg)
 	if err != nil {

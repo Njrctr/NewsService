@@ -1,7 +1,7 @@
 package db
 
-func TestDBCfg() *Config {
-	cfg := &Config{
+func TestDBCfg() *DBConfig {
+	cfg := &DBConfig{
 		Host:        "localhost",
 		Port:        5432,
 		Username:    "newsuser",

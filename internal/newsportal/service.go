@@ -12,7 +12,7 @@ func New(repo *db.Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func pagination(pageNum, pageSize uint) (uint, uint) {
+func pagination(pageNum, pageSize int) (uint, uint) {
 	if pageSize == 0 {
 		pageSize = 5 // Дефолтный размер страницы
 	}
@@ -21,5 +21,5 @@ func pagination(pageNum, pageSize uint) (uint, uint) {
 		pageNum--
 	}
 
-	return pageNum, pageSize * pageNum
+	return uint(pageNum), uint(pageSize * pageNum)
 }

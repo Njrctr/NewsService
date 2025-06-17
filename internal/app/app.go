@@ -4,15 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/k0kubun/pp"
-	"gopkg.in/yaml.v3"
 	"log"
 	"net"
 	"net/http"
 	"news-service/internal/db"
 	"news-service/internal/newsportal"
 	"news-service/internal/rest"
-	"os"
 	"time"
 )
 
@@ -36,12 +33,12 @@ func New(cfg *Config, dbconn *db.DbEngine) *App {
 
 type Config struct {
 	// http config
-	HttpPort       int    `yaml:"httpPort"`
-	LogQueries     bool   `yaml:"logQueries"`
-	GinReleaseMode bool   `yaml:"ginReleaseMode"`
-	Env            string `yaml:"env"`
+	HttpPort       int    `toml:"httpPort"`
+	LogQueries     bool   `toml:"logQueries"`
+	GinReleaseMode bool   `toml:"ginReleaseMode"`
+	Env            string `toml:"env"`
 
-	DB *db.Config `yaml:"db"`
+	DB *db.DBConfig `toml:"db"`
 }
 
 func (c *Config) Validate() error {
@@ -52,22 +49,6 @@ func (c *Config) Validate() error {
 		return fmt.Errorf(`failed to validate db config: %s`, err.Error())
 	}
 	return nil
-}
-
-func LoadConfig(fileName string) (*Config, error) {
-	file, err := os.ReadFile(fileName)
-	if err != nil {
-		return nil, fmt.Errorf(`cant read file '%s'`, fileName)
-	}
-
-	config := new(Config)
-	if err = yaml.Unmarshal(file, config); err != nil {
-		return nil, fmt.Errorf(`file %s yaml unmarshal error: %s`, fileName, err.Error())
-	}
-	if config.Env == "dev" {
-		fmt.Printf("current config: \n\n%s\n", pp.Sprint(config))
-	}
-	return config, config.Validate()
 }
 
 func (a *App) Run(ctx context.Context) error {

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"news-service/internal/newsportal"
 )
 
@@ -35,4 +36,24 @@ func (h *Handler) Init() *gin.Engine {
 	}
 
 	return router
+}
+
+func (h *Handler) getTags(c *gin.Context) {
+	tags, err := h.services.Tags(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, serverError)
+		return
+	}
+
+	c.JSON(http.StatusOK, tags)
+}
+
+func (h *Handler) getCategories(c *gin.Context) {
+	cats, err := h.services.GetCategories(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, serverError)
+		return
+	}
+
+	c.JSON(http.StatusOK, cats)
 }

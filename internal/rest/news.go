@@ -1,9 +1,7 @@
 package rest
 
 import (
-	"errors"
 	"net/http"
-	myErrors "news-service/internal/db"
 	"news-service/internal/newsportal"
 	"strconv"
 
@@ -16,8 +14,8 @@ const (
 
 type ReqQuery struct {
 	NewsFilter
-	PageSize uint `form:"page_size,default=5"`
-	PageNum  uint `form:"page_num,default=0"`
+	PageSize int `form:"page_size,default=5"`
+	PageNum  int `form:"page_num,default=0"`
 }
 
 // @Summary Получить новость по ID
@@ -39,10 +37,6 @@ func (h *Handler) getOneNews(c *gin.Context) {
 
 	news, err := h.services.NewsByID(c, newsId)
 	if err != nil {
-		if errors.Is(err, myErrors.ErrNoRows) {
-			newErrorResponse(c, http.StatusNotFound, `news not found`)
-			return
-		}
 		newErrorResponse(c, http.StatusInternalServerError, serverError)
 		return
 	}
@@ -56,7 +50,7 @@ func (h *Handler) getOneNews(c *gin.Context) {
 }
 
 func (h *Handler) getNews(c *gin.Context) {
-	req := new(ReqQuery)
+	req := &ReqQuery{}
 	if err := c.BindQuery(req); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, `invalid query param(s)`)
 		return
@@ -69,10 +63,6 @@ func (h *Handler) getNews(c *gin.Context) {
 		},
 		req.PageNum, req.PageSize)
 	if err != nil {
-		if errors.Is(err, myErrors.ErrNoRows) {
-			newErrorResponse(c, http.StatusNotFound, `news not found`)
-			return
-		}
 		newErrorResponse(c, http.StatusInternalServerError, serverError)
 		return
 	}

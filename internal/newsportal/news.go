@@ -28,7 +28,7 @@ func (s *Service) NewsByID(ctx context.Context, id int) (*News, error) {
 	fmt.Printf("%#v", news)
 	return req, nil
 }
-func (s *Service) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum, pageSize uint) ([]*News, error) {
+func (s *Service) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum, pageSize int) ([]*News, error) {
 
 	offset, limit := pagination(pageNum, pageSize)
 	news, err := s.repo.NewsByFilters(ctx, &db.NewsFilter{filter.CategoryID, filter.TagID}, offset, limit)

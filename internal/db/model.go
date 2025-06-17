@@ -3,29 +3,29 @@ package db
 import "time"
 
 type Category struct {
-	ID          int    `json:"category_id" db:"categoryId"`
-	Title       string `json:"title" db:"title"`
-	OrderNumber int    `json:"order_number,omitempty" db:"orderNumber"`
+	ID          int    `db:"categoryId"`
+	Title       string `db:"title"`
+	OrderNumber int    `db:"orderNumber"`
 }
 type News struct {
-	ID          int        `json:"news_id" db:"newsId"`
-	CategoryID  int        `json:"-" db:"categoryId"`
-	Title       string     `json:"title" db:"title"`
-	Foreword    string     `json:"foreword" db:"foreword"`
-	Content     string     `json:"content,omitempty" db:"content"`
-	Author      *string    `json:"author,omitempty" db:"author"`
-	CreatedAt   *time.Time `json:"created_at,omitempty" db:"createdAt"`
-	PublishedAt *time.Time `json:"published_at,omitempty" db:"publishedAt"`
-	Category    *Category  `json:"category" db:"category"`
-	TagIDs      []int      `json:"-" db:"tagIds"`
+	ID          int        `db:"newsId"`
+	CategoryID  int        `db:"categoryId"`
+	Title       string     `db:"title"`
+	Foreword    string     `db:"foreword"`
+	Content     string     `db:"content"`
+	Author      *string    `db:"author"`
+	CreatedAt   *time.Time `db:"createdAt"`
+	PublishedAt *time.Time `db:"publishedAt"`
+	Category    *Category  `db:"category"`
+	TagIDs      []int      `db:"tagIds"`
 }
 
 type NewsFilter struct {
-	CategoryID int `form:"cat,default=0"`
-	TagID      int `form:"tag,default=0"`
+	CategoryID int
+	TagID      int
 }
 
 type Tag struct {
-	ID    int    `json:"tag_id" db:"tagId"`
-	Title string `json:"title" db:"title"`
+	ID    int    `db:"tagId"`
+	Title string `db:"title"`
 }

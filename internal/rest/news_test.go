@@ -27,10 +27,11 @@ func Test_getOneNews(t *testing.T) {
 			expectedCode: 200,
 			expectErr:    false,
 		}, {
-			name:         "тшдд",
+			name:         "not found",
 			newsId:       3,
 			expectedCode: 404,
-			expectErr:    false,
+			expectErr:    true,
+			errMsg:       `{"message":"news not found"}`,
 		},
 		{
 			name:         "invalid id param",
@@ -61,6 +62,67 @@ func Test_getOneNews(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", fmt.Sprintf("/news/%v", testCase.newsId), nil)
+
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, testCase.expectedCode, rec.Code)
+			if testCase.expectErr {
+				assert.Equal(t, testCase.errMsg, rec.Body.String())
+			}
+		})
+	}
+}
+
+func Test_getNews(t *testing.T) {
+	testTable := []struct {
+		name         string
+		queryParams  string
+		expectedCode int
+		expectErr    bool
+		errMsg       string
+	}{
+		{
+			name:         "Ok",
+			queryParams:  `tag=1&cat=1`,
+			expectedCode: 200,
+			expectErr:    false,
+		},
+		{
+			name:         "not found",
+			queryParams:  `tag=4&cat=6`,
+			expectedCode: 404,
+			expectErr:    true,
+			errMsg:       `{"message":"news not found"}`,
+		},
+		{
+			name:         "invalid query param",
+			queryParams:  "tag=qwe&cat=1",
+			expectedCode: 400,
+			expectErr:    true,
+			errMsg:       `{"message":"invalid query param(s)"}`,
+		},
+	}
+
+	cfgDb := db.TestDBCfg()
+	ctx := context.Background()
+
+	dbconn, err := db.New(ctx, cfgDb)
+	if err != nil {
+		log.Fatal(err)
+	}
+	repository := db.NewRepository(dbconn)
+	services := newsportal.New(repository)
+	handlers := New(services)
+
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+	router.GET("/news/", handlers.getNews)
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+
+			rec := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", fmt.Sprintf("/news/?%v", testCase.queryParams), nil)
 
 			router.ServeHTTP(rec, req)
 
