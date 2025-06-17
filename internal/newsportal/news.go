@@ -2,7 +2,6 @@ package newsportal
 
 import (
 	"context"
-	"fmt"
 	"news-service/internal/db"
 )
 
@@ -10,61 +9,71 @@ func (s *Service) NewsByID(ctx context.Context, id int) (*News, error) {
 	news, err := s.repo.NewsByID(ctx, id)
 	if err != nil {
 		return nil, err
-	}
-
-	if news == nil {
+	} else if news == nil {
 		return nil, nil
 	}
 
-	tags, err := s.repo.TagsByIds(ctx, news.TagIDs)
+	req := newNews(news)
+
+	if len(news.TagIDs) == 0 {
+		return req, nil
+	}
+	tags, err := s.repo.Tags(ctx, news.TagIDs)
 	if err != nil {
 		return nil, err
+	} else if len(tags) == 0 {
+		return req, nil
 	}
 
-	req := newNews(news)
-	for _, tag := range news.TagIDs {
-		req.Tags = append(req.Tags, newTag(tags[tag]))
+	for _, tag := range tags {
+		req.Tags = append(req.Tags, newTag(tag))
 	}
-	fmt.Printf("%#v", news)
+
 	return req, nil
 }
-func (s *Service) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum, pageSize int) ([]*News, error) {
+
+func (s *Service) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum, pageSize int) ([]News, error) {
 
 	offset, limit := pagination(pageNum, pageSize)
 	news, err := s.repo.NewsByFilters(ctx, &db.NewsFilter{filter.CategoryID, filter.TagID}, offset, limit)
 	if err != nil {
 		return nil, err
-	}
-
-	if len(news) == 0 {
+	} else if len(news) == 0 {
 		return nil, nil
 	}
 
-	tagMap := make(map[int]struct{})
+	req := make([]News, 0, len(news))
+	uniqTags := make(map[int]Tag)
 	var tagIds []int
 	for _, n := range news {
-		for _, tag := range n.TagIDs {
-			if _, ok := tagMap[tag]; !ok {
-				tagMap[tag] = struct{}{}
-				tagIds = append(tagIds, tag)
+		for _, tagID := range n.TagIDs {
+			if _, ok := uniqTags[tagID]; !ok {
+				tagIds = append(tagIds, tagID)
+				uniqTags[tagID] = Tag{}
 			}
 		}
 	}
 
-	tags, err := s.repo.TagsByIds(ctx, tagIds)
+	tags, err := s.repo.Tags(ctx, tagIds)
 	if err != nil {
 		return nil, err
+	} else if len(tags) == 0 {
+		return req, nil
 	}
 
-	req := make([]*News, 0, len(news))
+	for _, t := range tags {
+		uniqTags[t.ID] = newTag(t)
+	}
+
 	for _, n := range news {
-		newNews := newNews(n)
-		for _, tag := range n.TagIDs {
-			newNews.Tags = append(newNews.Tags, newTag(tags[tag]))
+		newNewsItem := newNews(&n)
+		for _, tagID := range n.TagIDs {
+			if v, ok := uniqTags[tagID]; ok {
+				newNewsItem.Tags = append(newNewsItem.Tags, v)
+			}
 		}
-		req = append(req, newNews)
+		req = append(req, *newNewsItem)
 	}
-
 	return req, nil
 }
 

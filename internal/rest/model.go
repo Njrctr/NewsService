@@ -18,8 +18,8 @@ type News struct {
 	Author      *string    `json:"author"`
 	CreatedAt   *time.Time `json:"created_at"`
 	PublishedAt *time.Time `json:"published_at"`
-	Category    *Category  `json:"category"`
-	Tags        []*Tag     `json:"tags,omitempty"`
+	Category    Category   `json:"category"`
+	Tags        []Tag      `json:"tags,omitempty"`
 }
 
 type NewsFilter struct {
@@ -32,18 +32,18 @@ type Tag struct {
 	Title string `json:"title" db:"title"`
 }
 
-func newCategory(dto *newsportal.Category) *Category {
-	return &Category{
+func newCategory(dto newsportal.Category) Category {
+	return Category{
 		ID:          dto.ID,
 		Title:       dto.Title,
 		OrderNumber: dto.OrderNumber,
 	}
 }
 
-func newTags(dtos []*newsportal.Tag) []*Tag {
-	res := make([]*Tag, 0, len(dtos))
+func newTags(dtos []newsportal.Tag) []Tag {
+	res := make([]Tag, 0, len(dtos))
 	for _, t := range dtos {
-		res = append(res, &Tag{
+		res = append(res, Tag{
 			ID:    t.ID,
 			Title: t.Title,
 		})
@@ -52,10 +52,10 @@ func newTags(dtos []*newsportal.Tag) []*Tag {
 	return res
 }
 
-func newNews(dto *newsportal.News) *News {
+func newNews(dto newsportal.News) News {
 	category := newCategory(dto.Category)
 	tags := newTags(dto.Tags)
-	return &News{
+	return News{
 		ID:          dto.ID,
 		Title:       dto.Title,
 		Foreword:    dto.Foreword,

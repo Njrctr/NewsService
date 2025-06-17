@@ -3,29 +3,29 @@ package db
 import "time"
 
 type Category struct {
-	ID          int    `db:"categoryId"`
-	Title       string `db:"title"`
-	OrderNumber int    `db:"orderNumber"`
+	ID          int `pg:"categoryId,pk"`
+	Title       string
+	OrderNumber int `pg:"orderNumber"`
 }
 type News struct {
-	ID          int        `db:"newsId"`
-	CategoryID  int        `db:"categoryId"`
-	Title       string     `db:"title"`
-	Foreword    string     `db:"foreword"`
-	Content     string     `db:"content"`
-	Author      *string    `db:"author"`
-	CreatedAt   *time.Time `db:"createdAt"`
-	PublishedAt *time.Time `db:"publishedAt"`
-	Category    *Category  `db:"category"`
-	TagIDs      []int      `db:"tagIds"`
+	ID          int `pg:"newsId,pk"`
+	Title       string
+	CategoryID  int `pg:"categoryId"`
+	Foreword    string
+	Content     string
+	Author      *string
+	CreatedAt   *time.Time `pg:"createdAt"`
+	PublishedAt *time.Time `pg:"publishedAt"`
+	Category    *Category  `pg:"rel:has-one,fk:categoryId"`
+	TagIDs      []int      `pg:"tagIds,array"`
 }
 
 type NewsFilter struct {
-	CategoryID int
+	CategoryID int `pg:"categoryId"`
 	TagID      int
 }
 
 type Tag struct {
-	ID    int    `db:"tagId"`
-	Title string `db:"title"`
+	ID    int    `pg:"tagId"`
+	Title string `pg:"title"`
 }

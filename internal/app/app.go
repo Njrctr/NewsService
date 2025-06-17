@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-pg/pg/v10"
 	"log"
 	"net"
 	"net/http"
@@ -15,11 +16,11 @@ import (
 
 type App struct {
 	Cfg    *Config
-	DB     *db.DbEngine
+	DB     *pg.DB
 	server *rest.Handler
 }
 
-func New(cfg *Config, dbconn *db.DbEngine) *App {
+func New(cfg *Config, dbconn *pg.DB) *App {
 	repository := db.NewRepository(dbconn)
 	services := newsportal.New(repository)
 	handlers := rest.New(services)

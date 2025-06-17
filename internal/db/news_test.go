@@ -16,7 +16,7 @@ func TestNewsRepository_GetNewsByID(t *testing.T) {
 		log.Fatal(err)
 	}
 	repository := NewRepository(db)
-	got, err := repository.NewsByID(ctx, 1)
+	got, err := repository.NewsByID(ctx, 4)
 	if err != nil {
 
 		t.Errorf("NewsRepository.GetNewsByID() error = %v", err)
@@ -39,7 +39,7 @@ func TestGetNews(t *testing.T) {
 
 	filter := &NewsFilter{
 		CategoryID: 1,
-		TagID:      0,
+		TagID:      1,
 	}
 
 	got, err := repository.NewsByFilters(ctx, filter, 0, 2)

@@ -72,7 +72,7 @@ func (h *Handler) getNews(c *gin.Context) {
 		return
 	}
 
-	res := make([]*News, 0, len(news))
+	res := make([]News, 0, len(news))
 	for _, n := range news {
 		res = append(res, newNews(n))
 	}

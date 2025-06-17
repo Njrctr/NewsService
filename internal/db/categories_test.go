@@ -24,6 +24,6 @@ func TestGetCategories(t *testing.T) {
 	}
 
 	for _, cat := range got {
-		fmt.Println(*cat)
+		fmt.Println(cat)
 	}
 }
