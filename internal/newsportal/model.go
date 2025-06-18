@@ -16,8 +16,7 @@ type News struct {
 	Foreword    string
 	Content     string
 	Author      *string
-	CreatedAt   *time.Time
-	PublishedAt *time.Time
+	PublishedAt time.Time
 	Category    Category
 	Tags        []Tag
 }
@@ -52,9 +51,8 @@ func newNews(dto *db.News) *News {
 		ID:          dto.ID,
 		Title:       dto.Title,
 		Foreword:    dto.Foreword,
-		Content:     dto.Content,
+		Content:     *dto.Content,
 		Author:      dto.Author,
-		CreatedAt:   dto.CreatedAt,
 		PublishedAt: dto.PublishedAt,
 		Category:    category,
 	}

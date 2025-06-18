@@ -1,13 +1,11 @@
 package rest
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/labstack/echo/v4"
+)
 
-type errorResponse struct {
-	Message string `json:"message"`
-}
-
-func newErrorResponse(c *gin.Context, statusCode int, message string) {
-	c.AbortWithStatusJSON(statusCode, errorResponse{Message: message})
+func newErrorResponse(c echo.Context, statusCode int, message string) error {
+	return c.String(statusCode, message)
 }
 
 var serverError = `server error`

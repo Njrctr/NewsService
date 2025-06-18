@@ -16,7 +16,7 @@ func TestNewsRepository_GetNewsByID(t *testing.T) {
 		log.Fatal(err)
 	}
 	repository := NewRepository(db)
-	got, err := repository.NewsByID(ctx, 4)
+	got, err := repository.NewsByID(ctx, 2)
 	if err != nil {
 
 		t.Errorf("NewsRepository.GetNewsByID() error = %v", err)

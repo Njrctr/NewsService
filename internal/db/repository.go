@@ -15,13 +15,20 @@ func NewRepository(db *pg.DB) *Repository {
 	return &Repository{db: db}
 }
 
+type NewsFilter struct {
+	CategoryID int
+	TagID      int
+}
+
 func (r *Repository) Tags(ctx context.Context, ids []int) ([]Tag, error) {
 
 	var tags []Tag
-	query := r.db.ModelContext(ctx, &tags).Where(`"statusId" = ?`, 1)
+	query := r.db.ModelContext(ctx, &tags).
+		Where(`? = ?`, pg.Ident(Columns.Tag.StatusID), 1)
 
 	if len(ids) != 0 {
-		query = query.WhereIn(`"tagId" IN (?)`, ids)
+		where := fmt.Sprintf("%q IN (?)", Columns.Tag.ID)
+		query = query.WhereIn(where, ids)
 	}
 	err := query.Select()
 	if err != nil {
@@ -37,7 +44,9 @@ func (r *Repository) Tags(ctx context.Context, ids []int) ([]Tag, error) {
 func (r *Repository) GetCategories(ctx context.Context) ([]Category, error) {
 
 	var cats []Category
-	err := r.db.ModelContext(ctx, &cats).Where(`"statusId" = ?`, 1).Order(`orderNumber ASC`).Select()
+	err := r.db.ModelContext(ctx, &cats).
+		Where(`? = ?`, pg.Ident(Columns.Category.StatusID), 1).
+		Order(fmt.Sprintf("%s ASC", pg.Ident(Columns.Category.OrderNumber))).Select()
 	if err != nil {
 		return nil, fmt.Errorf("get_categories query return err: %w", err)
 	}

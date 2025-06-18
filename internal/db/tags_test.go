@@ -17,7 +17,7 @@ func TestGetTags(t *testing.T) {
 	}
 	repository := NewRepository(db)
 
-	got, err := repository.Tags(ctx, nil)
+	got, err := repository.Tags(ctx, []int{1, 2})
 	if err != nil {
 		t.Errorf("GetTags() error = %v", err)
 		return

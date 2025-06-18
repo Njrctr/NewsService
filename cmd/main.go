@@ -15,9 +15,6 @@ import (
 	"time"
 )
 
-// @title News Service API
-// @version 1.0
-// @description API Server for News
 func main() {
 	ctx, shutdown := context.WithCancel(context.Background())
 
@@ -58,9 +55,7 @@ func loadConfig(configFile string) (*app.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := cfg.Validate(); err != nil {
-		return nil, err
-	}
+
 	fmt.Printf("current config: \n\n%s\n", pp.Sprint(cfg))
 
 	return cfg, nil

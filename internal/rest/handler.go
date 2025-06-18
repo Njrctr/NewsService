@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"net/http"
 	"news-service/internal/newsportal"
 )
@@ -14,9 +14,9 @@ func New(services *newsportal.Service) *Handler {
 	return &Handler{services: services}
 }
 
-func (h *Handler) Init() *gin.Engine {
+func (h *Handler) Init() *echo.Echo {
 
-	router := gin.Default()
+	router := echo.New()
 
 	news := router.Group("/news")
 	{
@@ -38,22 +38,22 @@ func (h *Handler) Init() *gin.Engine {
 	return router
 }
 
-func (h *Handler) getTags(c *gin.Context) {
-	tags, err := h.services.Tags(c)
+func (h *Handler) getTags(c echo.Context) error {
+	ctx := c.Request().Context()
+	tags, err := h.services.Tags(ctx)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, serverError)
-		return
+		return newErrorResponse(c, http.StatusInternalServerError, serverError)
 	}
 
-	c.JSON(http.StatusOK, tags)
+	return c.JSON(http.StatusOK, tags)
 }
 
-func (h *Handler) getCategories(c *gin.Context) {
-	cats, err := h.services.GetCategories(c)
+func (h *Handler) getCategories(c echo.Context) error {
+	ctx := c.Request().Context()
+	cats, err := h.services.GetCategories(ctx)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, serverError)
-		return
+		return newErrorResponse(c, http.StatusInternalServerError, serverError)
 	}
 
-	c.JSON(http.StatusOK, cats)
+	return c.JSON(http.StatusOK, cats)
 }

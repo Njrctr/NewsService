@@ -6,25 +6,23 @@ import (
 )
 
 type Category struct {
-	ID          int    `json:"category_id"`
-	Title       string `json:"title"`
-	OrderNumber int    `json:"order_number,omitempty"`
+	ID    int    `json:"category_id"`
+	Title string `json:"title"`
 }
 type News struct {
-	ID          int        `json:"news_id"`
-	Title       string     `json:"title"`
-	Foreword    string     `json:"foreword"`
-	Content     string     `json:"content"`
-	Author      *string    `json:"author"`
-	CreatedAt   *time.Time `json:"created_at"`
-	PublishedAt *time.Time `json:"published_at"`
-	Category    Category   `json:"category"`
-	Tags        []Tag      `json:"tags,omitempty"`
+	ID          int       `json:"news_id"`
+	Title       string    `json:"title"`
+	Foreword    string    `json:"foreword"`
+	Content     string    `json:"content"`
+	Author      *string   `json:"author"`
+	PublishedAt time.Time `json:"published_at"`
+	Category    Category  `json:"category"`
+	Tags        []Tag     `json:"tags,omitempty"`
 }
 
 type NewsFilter struct {
-	CategoryID int `form:"cat,default=0"`
-	TagID      int `form:"tag,default=0"`
+	CategoryID int `query:"cat"`
+	TagID      int `query:"tag"`
 }
 
 type Tag struct {
@@ -34,9 +32,8 @@ type Tag struct {
 
 func newCategory(dto newsportal.Category) Category {
 	return Category{
-		ID:          dto.ID,
-		Title:       dto.Title,
-		OrderNumber: dto.OrderNumber,
+		ID:    dto.ID,
+		Title: dto.Title,
 	}
 }
 
@@ -61,7 +58,6 @@ func newNews(dto newsportal.News) News {
 		Foreword:    dto.Foreword,
 		Content:     dto.Content,
 		Author:      dto.Author,
-		CreatedAt:   dto.CreatedAt,
 		PublishedAt: dto.PublishedAt,
 		Category:    category,
 		Tags:        tags,

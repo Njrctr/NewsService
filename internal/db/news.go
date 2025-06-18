@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
+	"strings"
 )
 
 func (r *Repository) NewsByID(ctx context.Context, id int) (*News, error) {
 
 	news := &News{ID: id}
 	query := r.db.ModelContext(ctx, news).
-		Relation("Category").WherePK()
+		Relation(Columns.News.Category).WherePK()
 
 	query = prepareFilters(query, nil)
 	err := query.Select()
@@ -30,11 +31,13 @@ func (r *Repository) NewsByFilters(ctx context.Context, filter *NewsFilter, offs
 
 	var news []News
 	query := r.db.ModelContext(ctx, &news).
-		Relation("Category")
+		Relation(Columns.News.Category)
 
 	query = prepareFilters(query, filter)
 
-	err := query.Order(`publishedAt DESC`).Offset(offset).Limit(limit).Select()
+	order := fmt.Sprintf("%s DESC", pg.Ident(Columns.News.PublishedAt))
+
+	err := query.Order(order).Offset(offset).Limit(limit).Select()
 	if err != nil {
 		return nil, fmt.Errorf("ошибка запроса: %w", err)
 	}
@@ -57,16 +60,21 @@ func (r *Repository) NewsCount(ctx context.Context, filter *NewsFilter) (int, er
 }
 
 func prepareFilters(query *orm.Query, filter *NewsFilter) *orm.Query {
-	query = query.Where(`"news"."statusId" = ?`, 1).
-		Where(`"category"."statusId" = ?`, 1).
-		Where(`"news"."publishedAt" <= NOW()`)
+	//query = query.Where(`"news"."statusId" = ?`, 1).
+	categoryAlias := strings.ToLower(Columns.News.Category)
+	newsAlias := Tables.News.Alias
+
+	query = query.Where(`?.? = ?`, pg.Ident(newsAlias), pg.Ident(Columns.News.StatusID), 1).
+		//Where(`"category"."statusId" = ?`, 1).
+		Where(`?.? = ?`, pg.Ident(categoryAlias), pg.Ident(Columns.Category.StatusID), 1).
+		Where(`?.? <= NOW()`, pg.Ident(newsAlias), pg.Ident(Columns.News.PublishedAt))
 
 	if filter != nil {
 		if filter.CategoryID != 0 {
-			query = query.Where(`"news"."categoryId" = ?`, filter.CategoryID)
+			query = query.Where(`?.? = ?`, pg.Ident(newsAlias), pg.Ident(Columns.News.CategoryID), filter.CategoryID)
 		}
 		if filter.TagID != 0 {
-			query = query.Where(`? = ANY ("tagIds")`, filter.TagID)
+			query = query.Where(`? = ANY (?.?)`, filter.TagID, pg.Ident(newsAlias), pg.Ident(Columns.News.TagIDs))
 		}
 	}
 

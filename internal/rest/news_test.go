@@ -3,13 +3,13 @@ package rest
 import (
 	"context"
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"log"
 	"net/http/httptest"
 	"news-service/internal/db"
 	"news-service/internal/newsportal"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,19 +26,20 @@ func Test_getOneNews(t *testing.T) {
 			newsId:       1,
 			expectedCode: 200,
 			expectErr:    false,
-		}, {
+		},
+		{
 			name:         "not found",
-			newsId:       3,
+			newsId:       5,
 			expectedCode: 404,
 			expectErr:    true,
-			errMsg:       `{"message":"news not found"}`,
+			errMsg:       "news not found",
 		},
 		{
 			name:         "invalid id param",
 			newsId:       "qwe",
 			expectedCode: 400,
 			expectErr:    true,
-			errMsg:       `{"message":"invalid id param, should be int"}`,
+			errMsg:       "invalid id param, should be int",
 		},
 	}
 
@@ -53,8 +54,7 @@ func Test_getOneNews(t *testing.T) {
 	services := newsportal.New(repository)
 	handlers := New(services)
 
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
+	router := echo.New()
 	router.GET("/news/:id", handlers.getOneNews)
 
 	for _, testCase := range testTable {
@@ -92,14 +92,14 @@ func Test_getNews(t *testing.T) {
 			queryParams:  `tag=4&cat=6`,
 			expectedCode: 404,
 			expectErr:    true,
-			errMsg:       `{"message":"news not found"}`,
+			errMsg:       "news not found",
 		},
 		{
 			name:         "invalid query param",
 			queryParams:  "tag=qwe&cat=1",
 			expectedCode: 400,
 			expectErr:    true,
-			errMsg:       `{"message":"invalid query param(s)"}`,
+			errMsg:       "invalid query param(s)",
 		},
 	}
 
@@ -114,8 +114,7 @@ func Test_getNews(t *testing.T) {
 	services := newsportal.New(repository)
 	handlers := New(services)
 
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
+	router := echo.New()
 	router.GET("/news/", handlers.getNews)
 
 	for _, testCase := range testTable {

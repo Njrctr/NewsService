@@ -2,12 +2,9 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/go-pg/pg/v10"
 	"log"
-	"net"
-	"net/http"
 	"news-service/internal/db"
 	"news-service/internal/newsportal"
 	"news-service/internal/rest"
@@ -33,32 +30,16 @@ func New(cfg *Config, dbconn *pg.DB) *App {
 }
 
 type Config struct {
-	// http config
-	HttpPort       int    `toml:"httpPort"`
-	LogQueries     bool   `toml:"logQueries"`
-	GinReleaseMode bool   `toml:"ginReleaseMode"`
-	Env            string `toml:"env"`
+	HttpPort int
+	Env      string
 
-	DB *db.DBConfig `toml:"db"`
-}
-
-func (c *Config) Validate() error {
-	if c.HttpPort == 0 {
-		return errors.New(`httpPort is zero`)
-	}
-	if err := c.DB.Validate(); err != nil {
-		return fmt.Errorf(`failed to validate db config: %s`, err.Error())
-	}
-	return nil
+	DB *pg.Options
 }
 
 func (a *App) Run(ctx context.Context) error {
 
-	srv := &http.Server{
-		Addr:        fmt.Sprintf(":%d", a.Cfg.HttpPort),
-		Handler:     a.server.Init(),
-		BaseContext: func(net.Listener) context.Context { return ctx },
-	}
+	srv := a.server.Init()
+
 	go func() {
 		<-ctx.Done()
 		stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -69,6 +50,6 @@ func (a *App) Run(ctx context.Context) error {
 		}
 	}()
 
-	return srv.ListenAndServe()
+	return srv.Start(fmt.Sprintf(":%d", a.Cfg.HttpPort))
 
 }

@@ -1,12 +1,10 @@
 package rest
 
 import (
-	"fmt"
+	"github.com/labstack/echo/v4"
 	"net/http"
 	"news-service/internal/newsportal"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -15,63 +13,47 @@ const (
 
 type ReqQuery struct {
 	NewsFilter
-	PageSize int `form:"page_size,default=5"`
-	PageNum  int `form:"page_num,default=0"`
+	PageSize int `query:"page_size"`
+	PageNum  int `query:"page_num"`
 }
 
-// @Summary Получить новость по ID
-// @Tags News
-// @Description Get News By ID
-// @ID get-news-by-id
-// @Accept  json
-// @Produce  json
-// @Success 200 {object} structs.News
-// @Failure 400,404,500 {object} errorResponse
-// @Router /news [get]
-func (h *Handler) getOneNews(c *gin.Context) {
+func (h *Handler) getOneNews(c echo.Context) error {
+	ctx := c.Request().Context()
 	newsIdStr := c.Param(newsId)
 	newsId, err := strconv.Atoi(newsIdStr)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, `invalid id param, should be int`)
-		return
+		return newErrorResponse(c, http.StatusBadRequest, `invalid id param, should be int`)
 	}
 
-	news, err := h.services.NewsByID(c, newsId)
+	news, err := h.services.NewsByID(ctx, newsId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, serverError)
-		return
+		return newErrorResponse(c, http.StatusInternalServerError, serverError)
 	}
 
 	if news == nil {
-		newErrorResponse(c, http.StatusNotFound, `news not found`)
-		return
+		return newErrorResponse(c, http.StatusNotFound, `news not found`)
 	}
 
-	c.JSON(http.StatusOK, news)
+	return c.JSON(http.StatusOK, news)
 }
 
-func (h *Handler) getNews(c *gin.Context) {
+func (h *Handler) getNews(c echo.Context) error {
+	ctx := c.Request().Context()
 	req := &ReqQuery{}
-	if err := c.BindQuery(req); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, `invalid query param(s)`)
-		return
+	if err := c.Bind(req); err != nil {
+		return newErrorResponse(c, http.StatusBadRequest, `invalid query param(s)`)
 	}
 
-	fmt.Println(req.PageNum, req.PageSize)
-	news, err := h.services.NewsByFilters(c,
+	news, err := h.services.NewsByFilters(ctx,
 		&newsportal.NewsFilter{
 			CategoryID: req.CategoryID,
 			TagID:      req.TagID,
 		},
 		req.PageNum, req.PageSize)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, serverError)
-		return
-	}
-
-	if len(news) == 0 {
-		newErrorResponse(c, http.StatusNotFound, `news not found`)
-		return
+		return newErrorResponse(c, http.StatusInternalServerError, serverError)
+	} else if len(news) == 0 {
+		return newErrorResponse(c, http.StatusNotFound, `news not found`)
 	}
 
 	res := make([]News, 0, len(news))
@@ -79,21 +61,20 @@ func (h *Handler) getNews(c *gin.Context) {
 		res = append(res, newNews(n))
 	}
 
-	c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) getNewsCount(c *gin.Context) {
+func (h *Handler) getNewsCount(c echo.Context) error {
+	ctx := c.Request().Context()
 	filter := new(newsportal.NewsFilter)
-	if err := c.BindQuery(filter); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, `invalid query param(s)`)
-		return
+	if err := c.Bind(filter); err != nil {
+		return newErrorResponse(c, http.StatusBadRequest, `invalid query param(s)`)
 	}
 
-	count, err := h.services.NewsCount(c, filter)
+	count, err := h.services.NewsCount(ctx, filter)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, serverError)
-		return
+		return newErrorResponse(c, http.StatusInternalServerError, serverError)
 	}
 
-	c.JSON(http.StatusOK, count)
+	return c.JSON(http.StatusOK, count)
 }
