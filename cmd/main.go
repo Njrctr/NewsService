@@ -5,10 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"github.com/go-pg/pg/v10"
 	"github.com/k0kubun/pp"
 	"log"
 	"news-service/internal/app"
-	"news-service/internal/db"
 	"os"
 	"os/signal"
 	"syscall"
@@ -27,8 +27,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dbconn, err := db.New(ctx, cfg.DB)
-	if err != nil {
+	dbconn := pg.Connect(cfg.DB)
+	if err := dbconn.Ping(ctx); err != nil {
 		log.Fatal(err)
 	}
 
