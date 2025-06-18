@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"github.com/go-pg/pg/v10"
 	"log"
 	"testing"
 )
@@ -11,10 +12,11 @@ func TestNewsRepository_GetNewsByID(t *testing.T) {
 	cfgDb := TestDBCfg()
 	ctx := context.Background()
 
-	db, err := New(ctx, cfgDb)
-	if err != nil {
+	db := pg.Connect(cfgDb)
+	if err := db.Ping(ctx); err != nil {
 		log.Fatal(err)
 	}
+
 	repository := NewRepository(db)
 	got, err := repository.NewsByID(ctx, 2)
 	if err != nil {
@@ -31,10 +33,11 @@ func TestGetNews(t *testing.T) {
 	cfgDb := TestDBCfg()
 	ctx := context.Background()
 
-	db, err := New(ctx, cfgDb)
-	if err != nil {
+	db := pg.Connect(cfgDb)
+	if err := db.Ping(ctx); err != nil {
 		log.Fatal(err)
 	}
+
 	repository := NewRepository(db)
 
 	filter := &NewsFilter{
@@ -58,10 +61,11 @@ func TestGetNewsCount(t *testing.T) {
 	cfgDb := TestDBCfg()
 	ctx := context.Background()
 
-	db, err := New(ctx, cfgDb)
-	if err != nil {
+	db := pg.Connect(cfgDb)
+	if err := db.Ping(ctx); err != nil {
 		log.Fatal(err)
 	}
+
 	repository := NewRepository(db)
 
 	filter := &NewsFilter{

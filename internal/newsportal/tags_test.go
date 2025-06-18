@@ -3,6 +3,7 @@ package newsportal
 import (
 	"context"
 	"fmt"
+	"github.com/go-pg/pg/v10"
 	"log"
 	"news-service/internal/db"
 	"testing"
@@ -12,10 +13,11 @@ func TestService_Tags(t *testing.T) {
 	cfgDb := db.TestDBCfg()
 	ctx := context.Background()
 
-	dbconn, err := db.New(ctx, cfgDb)
-	if err != nil {
+	dbconn := pg.Connect(cfgDb)
+	if err := dbconn.Ping(ctx); err != nil {
 		log.Fatal(err)
 	}
+
 	repository := db.NewRepository(dbconn)
 	s := New(repository)
 

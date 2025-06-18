@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"github.com/go-pg/pg/v10"
 	"github.com/labstack/echo/v4"
 	"log"
 	"net/http/httptest"
@@ -46,10 +47,11 @@ func Test_getOneNews(t *testing.T) {
 	cfgDb := db.TestDBCfg()
 	ctx := context.Background()
 
-	dbconn, err := db.New(ctx, cfgDb)
-	if err != nil {
+	dbconn := pg.Connect(cfgDb)
+	if err := dbconn.Ping(ctx); err != nil {
 		log.Fatal(err)
 	}
+
 	repository := db.NewRepository(dbconn)
 	services := newsportal.New(repository)
 	handlers := New(services)
@@ -106,10 +108,11 @@ func Test_getNews(t *testing.T) {
 	cfgDb := db.TestDBCfg()
 	ctx := context.Background()
 
-	dbconn, err := db.New(ctx, cfgDb)
-	if err != nil {
+	dbconn := pg.Connect(cfgDb)
+	if err := dbconn.Ping(ctx); err != nil {
 		log.Fatal(err)
 	}
+
 	repository := db.NewRepository(dbconn)
 	services := newsportal.New(repository)
 	handlers := New(services)

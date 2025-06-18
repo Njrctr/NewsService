@@ -53,3 +53,14 @@ func (r *Repository) GetCategories(ctx context.Context) ([]Category, error) {
 
 	return cats, nil
 }
+
+func TestDBCfg() *pg.Options {
+	cfg := &pg.Options{
+		Addr:     "localhost:5432",
+		User:     "newsuser",
+		Password: "akgj123cguygecuw3riu1y23",
+		Database: "news-db",
+	}
+
+	return cfg
+}
