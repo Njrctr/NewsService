@@ -35,7 +35,7 @@ func (s *Service) NewsByID(ctx context.Context, id int) (*News, error) {
 func (s *Service) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum, pageSize int) ([]News, error) {
 
 	offset, limit := pagination(pageNum, pageSize)
-	news, err := s.repo.NewsByFilters(ctx, &db.NewsFilter{filter.CategoryID, filter.TagID}, offset, limit)
+	news, err := s.repo.NewsByFilters(ctx, &db.NewsFilter{CategoryID: filter.CategoryID, TagID: filter.TagID}, offset, limit)
 	if err != nil {
 		return nil, err
 	} else if len(news) == 0 {
@@ -78,7 +78,7 @@ func (s *Service) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum
 }
 
 func (s *Service) NewsCount(ctx context.Context, filter *NewsFilter) (int, error) {
-	count, err := s.repo.NewsCount(ctx, &db.NewsFilter{filter.CategoryID, filter.TagID})
+	count, err := s.repo.NewsCount(ctx, &db.NewsFilter{CategoryID: filter.CategoryID, TagID: filter.TagID})
 	if err != nil {
 		return 0, err
 	}
