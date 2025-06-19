@@ -70,7 +70,7 @@ func TestGetNewsCount(t *testing.T) {
 
 	filter := &NewsFilter{
 		CategoryID: 1,
-		TagID:      0,
+		TagID:      1,
 	}
 
 	got, err := repository.NewsCount(ctx, filter)

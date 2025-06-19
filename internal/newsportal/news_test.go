@@ -19,7 +19,7 @@ func TestGetNewsByID(t *testing.T) {
 	}
 
 	repository := db.NewRepository(dbconn)
-	services := New(repository)
+	services := NewManager(repository)
 
 	got, err := services.NewsByID(ctx, 1)
 	if err != nil {
@@ -40,7 +40,7 @@ func TestNewsService_GetNews(t *testing.T) {
 	}
 
 	repository := db.NewRepository(dbconn)
-	services := New(repository)
+	services := NewManager(repository)
 
 	filter := &NewsFilter{
 		CategoryID: 1,

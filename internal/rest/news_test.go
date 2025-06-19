@@ -53,11 +53,11 @@ func Test_getOneNews(t *testing.T) {
 	}
 
 	repository := db.NewRepository(dbconn)
-	services := newsportal.New(repository)
+	services := newsportal.NewManager(repository)
 	handlers := New(services)
 
 	router := echo.New()
-	router.GET("/news/:id", handlers.getOneNews)
+	router.GET("/news/:id", handlers.getByID)
 
 	for _, testCase := range testTable {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -114,7 +114,7 @@ func Test_getNews(t *testing.T) {
 	}
 
 	repository := db.NewRepository(dbconn)
-	services := newsportal.New(repository)
+	services := newsportal.NewManager(repository)
 	handlers := New(services)
 
 	router := echo.New()

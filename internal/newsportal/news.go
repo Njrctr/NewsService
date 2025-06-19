@@ -5,7 +5,8 @@ import (
 	"news-service/internal/db"
 )
 
-func (s *Service) NewsByID(ctx context.Context, id int) (*News, error) {
+// The NewsByID return News with included slice of Tag
+func (s *Manager) NewsByID(ctx context.Context, id int) (*News, error) {
 	news, err := s.repo.NewsByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -32,7 +33,8 @@ func (s *Service) NewsByID(ctx context.Context, id int) (*News, error) {
 	return req, nil
 }
 
-func (s *Service) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum, pageSize int) ([]News, error) {
+// The NewsByFilters return slice of News by NewsFilter, pageNum, pageSize. Include slice Tag into news items
+func (s *Manager) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum, pageSize int) ([]News, error) {
 
 	offset, limit := pagination(pageNum, pageSize)
 	news, err := s.repo.NewsByFilters(ctx, &db.NewsFilter{CategoryID: filter.CategoryID, TagID: filter.TagID}, offset, limit)
@@ -77,7 +79,7 @@ func (s *Service) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum
 	return req, nil
 }
 
-func (s *Service) NewsCount(ctx context.Context, filter *NewsFilter) (int, error) {
+func (s *Manager) NewsCount(ctx context.Context, filter *NewsFilter) (int, error) {
 	count, err := s.repo.NewsCount(ctx, &db.NewsFilter{CategoryID: filter.CategoryID, TagID: filter.TagID})
 	if err != nil {
 		return 0, err

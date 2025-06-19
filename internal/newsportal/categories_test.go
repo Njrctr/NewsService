@@ -19,11 +19,11 @@ func TestService_GetCategories(t *testing.T) {
 	}
 
 	repository := db.NewRepository(dbconn)
-	s := New(repository)
+	s := NewManager(repository)
 
-	got, err := s.GetCategories(ctx)
+	got, err := s.Categories(ctx)
 	if err != nil {
-		t.Errorf("Service.GetCategories() error = %v", err)
+		t.Errorf("Manager.GetCategories() error = %v", err)
 		return
 	}
 

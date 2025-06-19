@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+//go:generate zenrpc
 func main() {
 	ctx, shutdown := context.WithCancel(context.Background())
 

@@ -4,3 +4,4 @@ NewsServiceDB.pdd
 newsServiceSQL.sql
 .idea*
 genna.toml
+.tool-versions

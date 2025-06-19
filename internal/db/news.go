@@ -47,7 +47,7 @@ func (r *Repository) NewsByFilters(ctx context.Context, filter *NewsFilter, offs
 
 func (r *Repository) NewsCount(ctx context.Context, filter *NewsFilter) (int, error) {
 
-	query := r.db.ModelContext(ctx, &News{})
+	query := r.db.ModelContext(ctx, &News{}).Relation(Columns.News.Category)
 
 	query = prepareFilters(query, filter)
 
@@ -60,12 +60,10 @@ func (r *Repository) NewsCount(ctx context.Context, filter *NewsFilter) (int, er
 }
 
 func prepareFilters(query *orm.Query, filter *NewsFilter) *orm.Query {
-	//query = query.Where(`"news"."statusId" = ?`, 1).
 	categoryAlias := strings.ToLower(Columns.News.Category)
 	newsAlias := Tables.News.Alias
 
 	query = query.Where(`?.? = ?`, pg.Ident(newsAlias), pg.Ident(Columns.News.StatusID), 1).
-		//Where(`"category"."statusId" = ?`, 1).
 		Where(`?.? = ?`, pg.Ident(categoryAlias), pg.Ident(Columns.Category.StatusID), 1).
 		Where(`?.? <= NOW()`, pg.Ident(newsAlias), pg.Ident(Columns.News.PublishedAt))
 

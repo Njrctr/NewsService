@@ -5,15 +5,16 @@ import (
 	"news-service/internal/db"
 )
 
-type Service struct {
+type Manager struct {
 	repo *db.Repository
 }
 
-func New(repo *db.Repository) *Service {
-	return &Service{repo: repo}
+func NewManager(repo *db.Repository) *Manager {
+	return &Manager{repo: repo}
 }
 
-func (s *Service) Tags(ctx context.Context) ([]Tag, error) {
+// The Tags return slice of Tag
+func (s *Manager) Tags(ctx context.Context) ([]Tag, error) {
 	tags, err := s.repo.Tags(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -26,7 +27,8 @@ func (s *Service) Tags(ctx context.Context) ([]Tag, error) {
 	return req, nil
 }
 
-func (s *Service) GetCategories(ctx context.Context) ([]Category, error) {
+// The Categories return slice of Category
+func (s *Manager) Categories(ctx context.Context) ([]Category, error) {
 	cats, err := s.repo.GetCategories(ctx)
 	if err != nil {
 		return nil, err

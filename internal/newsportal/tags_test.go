@@ -19,11 +19,11 @@ func TestService_Tags(t *testing.T) {
 	}
 
 	repository := db.NewRepository(dbconn)
-	s := New(repository)
+	s := NewManager(repository)
 
 	got, err := s.Tags(ctx)
 	if err != nil {
-		t.Errorf("Service.Tags() error = %v", err)
+		t.Errorf("Manager.Tags() error = %v", err)
 		return
 	}
 

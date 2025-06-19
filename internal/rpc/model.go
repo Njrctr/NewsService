@@ -1,4 +1,4 @@
-package rest
+package rpc
 
 import (
 	"news-service/internal/newsportal"
@@ -21,8 +21,8 @@ type News struct {
 }
 
 type NewsFilter struct {
-	CategoryID int `query:"cat"`
-	TagID      int `query:"tag"`
+	CategoryID int `json:"cat"`
+	TagID      int `json:"tag"`
 }
 
 type Tag struct {
@@ -36,20 +36,18 @@ func newCategory(dto newsportal.Category) Category {
 		Title: dto.Title,
 	}
 }
-
-func newCategorySlice(dto []newsportal.Category) []Category {
-	req := make([]Category, 0, len(dto))
-	for _, c := range dto {
-		req = append(req, Category{
+func newCategorySlice(dtos []newsportal.Category) []Category {
+	res := make([]Category, 0, len(dtos))
+	for _, c := range dtos {
+		res = append(res, Category{
 			ID:    c.ID,
 			Title: c.Title,
 		})
 	}
-
-	return req
+	return res
 }
 
-func newTagsSlice(dtos []newsportal.Tag) []Tag {
+func newTags(dtos []newsportal.Tag) []Tag {
 	res := make([]Tag, 0, len(dtos))
 	for _, t := range dtos {
 		res = append(res, Tag{
@@ -63,7 +61,7 @@ func newTagsSlice(dtos []newsportal.Tag) []Tag {
 
 func newNews(dto newsportal.News) News {
 	category := newCategory(dto.Category)
-	tags := newTagsSlice(dto.Tags)
+	tags := newTags(dto.Tags)
 	return News{
 		ID:          dto.ID,
 		Title:       dto.Title,
@@ -75,11 +73,12 @@ func newNews(dto newsportal.News) News {
 		Tags:        tags,
 	}
 }
+
 func newNewsSlice(dtos []newsportal.News) []News {
 	req := make([]News, 0, len(dtos))
 	for _, n := range dtos {
 		category := newCategory(n.Category)
-		tags := newTagsSlice(n.Tags)
+		tags := newTags(n.Tags)
 		req = append(req, News{
 			ID:          n.ID,
 			Title:       n.Title,
