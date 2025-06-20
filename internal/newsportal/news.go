@@ -3,6 +3,7 @@ package newsportal
 import (
 	"context"
 	"news-service/internal/db"
+	"time"
 )
 
 // The NewsByID return News with included slice of Tag
@@ -37,7 +38,7 @@ func (s *Manager) NewsByID(ctx context.Context, id int) (*News, error) {
 func (s *Manager) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum, pageSize int) ([]News, error) {
 
 	//news, err := s.repo.NewsByFilters(ctx, &db.NewsFilter{CategoryID: filter.CategoryID, TagID: filter.TagID}, offset, limit)
-	news, err := s.repo.NewsByFilters(ctx, &db.NewsSearch{CategoryID: &filter.CategoryID}, db.NewPager(pageNum, pageSize), s.repo.FullNews())
+	news, err := s.repo.NewsByFilters(ctx, filter.toDB(), db.NewPager(pageNum, pageSize), s.repo.FullNews())
 	if err != nil {
 		return nil, err
 	} else if len(news) == 0 {
@@ -48,15 +49,19 @@ func (s *Manager) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum
 	uniqTags := make(map[int]Tag)
 	var tagIds []int
 	for _, n := range news {
+		newNewsItem := newNews(&n)
 		for _, tagID := range n.TagIDs {
 			if _, ok := uniqTags[tagID]; !ok {
 				tagIds = append(tagIds, tagID)
 				uniqTags[tagID] = Tag{}
 			}
 		}
+		req = append(req, *newNewsItem)
+	}
+	if len(tagIds) == 0 {
+		return req, nil
 	}
 
-	//TODO обработать поведение если тегов нет
 	tags, err := s.repo.TagsByFilters(ctx, &db.TagSearch{IDs: tagIds}, db.PagerNoLimit)
 	if err != nil {
 		return nil, err
@@ -68,23 +73,36 @@ func (s *Manager) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum
 		uniqTags[t.ID] = newTag(t)
 	}
 
-	for _, n := range news {
-		newNewsItem := newNews(&n)
+	for i, n := range news {
 		for _, tagID := range n.TagIDs {
 			if v, ok := uniqTags[tagID]; ok {
-				newNewsItem.Tags = append(newNewsItem.Tags, v)
+				req[i].Tags = append(req[i].Tags, v)
 			}
 		}
-		req = append(req, *newNewsItem)
 	}
 	return req, nil
 }
 
 func (s *Manager) NewsCount(ctx context.Context, filter *NewsFilter) (int, error) {
-	//count, err := s.repo.CountNews(ctx, &db.NewsSearch{CategoryID: filter.CategoryID, TagID: filter.TagID})
-	count, err := s.repo.CountNews(ctx, &db.NewsSearch{CategoryID: &filter.CategoryID})
+	count, err := s.repo.CountNews(ctx, filter.toDB())
 	if err != nil {
 		return 0, err
 	}
 	return count, nil
+}
+
+func (nf NewsFilter) toDB() *db.NewsSearch {
+	var categoryID, tagID *int
+	if nf.CategoryID != 0 {
+		categoryID = ptr(nf.CategoryID)
+	}
+	if nf.TagID != 0 {
+		tagID = ptr(nf.TagID)
+	}
+
+	return &db.NewsSearch{
+		CategoryID:    categoryID,
+		TagID:         tagID,
+		PublishedAtLe: ptr(time.Now()),
+	}
 }

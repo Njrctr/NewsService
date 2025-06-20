@@ -27,7 +27,11 @@ func TestGetNewsByID(t *testing.T) {
 		return
 	}
 
-	fmt.Printf("news: %v, newsTags: %v", got, got.Tags)
+	fmt.Printf("news: %v\n", got)
+	if len(got.Tags) != 0 {
+		fmt.Printf("newsTags: %v\n", got.Tags)
+	}
+
 }
 
 func TestNewsService_GetNews(t *testing.T) {
@@ -53,6 +57,9 @@ func TestNewsService_GetNews(t *testing.T) {
 		return
 	}
 	for _, news := range got {
-		fmt.Printf("news: %d, tags: %v\n", news.ID, news.Tags)
+		fmt.Printf("news: %v\n", news)
+		if len(news.Tags) != 0 {
+			fmt.Printf("newsTags: %v\n", news.Tags)
+		}
 	}
 }

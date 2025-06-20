@@ -8,8 +8,29 @@ import (
 	"log"
 	"news-service/internal/db"
 	"news-service/internal/newsportal"
+	"os"
 	"testing"
 )
+
+var (
+	services *newsportal.Manager
+	ctx      context.Context
+)
+
+func TestMain(m *testing.M) {
+	cfgDb := db.TestDBCfg()
+	ctx = context.Background()
+
+	dbconn := pg.Connect(cfgDb)
+	if err := dbconn.Ping(ctx); err != nil {
+		log.Fatal(err)
+	}
+	repository := db.NewNewsRepo(dbconn)
+	services = newsportal.NewManager(repository)
+
+	exitCode := m.Run()
+	os.Exit(exitCode)
+}
 
 func TestNewsService_GetNewsCount(t *testing.T) {
 
@@ -32,16 +53,6 @@ func TestNewsService_GetNewsCount(t *testing.T) {
 			want: 3,
 		},
 	}
-
-	cfgDb := db.TestDBCfg()
-	ctx := context.Background()
-
-	dbconn := pg.Connect(cfgDb)
-	if err := dbconn.Ping(ctx); err != nil {
-		log.Fatal(err)
-	}
-	repository := db.NewRepository(dbconn)
-	services := newsportal.NewManager(repository)
 
 	rpc := NewNewsService(services)
 
@@ -94,16 +105,6 @@ func TestNewsService_Get(t *testing.T) {
 		},
 	}
 
-	cfgDb := db.TestDBCfg()
-	ctx := context.Background()
-
-	dbconn := pg.Connect(cfgDb)
-	if err := dbconn.Ping(ctx); err != nil {
-		log.Fatal(err)
-	}
-	repository := db.NewRepository(dbconn)
-	services := newsportal.NewManager(repository)
-
 	rpc := NewNewsService(services)
 
 	for _, tt := range tests {
@@ -140,16 +141,6 @@ func TestNewsService_GetByID(t *testing.T) {
 		},
 	}
 
-	cfgDb := db.TestDBCfg()
-	ctx := context.Background()
-
-	dbconn := pg.Connect(cfgDb)
-	if err := dbconn.Ping(ctx); err != nil {
-		log.Fatal(err)
-	}
-	repository := db.NewRepository(dbconn)
-	services := newsportal.NewManager(repository)
-
 	rpc := NewNewsService(services)
 
 	for _, tt := range tests {
@@ -167,12 +158,7 @@ func TestNewsService_GetByID(t *testing.T) {
 }
 
 func TestTagService_Get(t *testing.T) {
-	type fields struct {
-		manager *newsportal.Manager
-	}
-	type args struct {
-		ctx context.Context
-	}
+
 	tests := []struct {
 		name      string
 		wantCount int
@@ -184,17 +170,6 @@ func TestTagService_Get(t *testing.T) {
 			wantCount: 2,
 		},
 	}
-
-	// TODO Test MAIN
-	cfgDb := db.TestDBCfg()
-	ctx := context.Background()
-
-	dbconn := pg.Connect(cfgDb)
-	if err := dbconn.Ping(ctx); err != nil {
-		log.Fatal(err)
-	}
-	repository := db.NewRepository(dbconn)
-	services := newsportal.NewManager(repository)
 
 	rpc := NewCategoryService(services)
 

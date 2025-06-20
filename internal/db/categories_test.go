@@ -17,9 +17,9 @@ func TestGetCategories(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	repository := NewRepository(db)
+	repository := NewNewsRepo(db)
 
-	got, err := repository.GetCategories(ctx)
+	got, err := repository.CategoriesByFilters(ctx, nil, PagerNoLimit)
 	if err != nil {
 		t.Errorf("GetCategories() error = %v", err)
 		return

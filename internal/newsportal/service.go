@@ -10,7 +10,7 @@ type Manager struct {
 }
 
 func NewManager(repo db.NewsRepo) *Manager {
-	return &Manager{repo: repo}
+	return &Manager{repo: repo.WithEnabledOnly()}
 }
 
 // The Tags return slice of Tag
@@ -29,7 +29,7 @@ func (s *Manager) Tags(ctx context.Context) ([]Tag, error) {
 
 // The Categories return slice of Category
 func (s *Manager) Categories(ctx context.Context) ([]Category, error) {
-	cats, err := s.repo.CategoriesByFilters(ctx, nil, db.PagerNoLimit)
+	cats, err := s.repo.CategoriesByFilters(ctx, nil, db.PagerNoLimit, db.WithSort(db.NewSortField(db.Columns.Category.OrderNumber, false)))
 	if err != nil {
 		return nil, err
 	}
@@ -40,15 +40,6 @@ func (s *Manager) Categories(ctx context.Context) ([]Category, error) {
 	return req, nil
 }
 
-func pagination(pageNum, pageSize int) (int, int) {
-	if pageSize == 0 {
-		pageSize = 5
-	}
-
-	page := pageNum
-	if page > 0 {
-		page--
-	}
-
-	return pageSize * page, pageSize
+func ptr[T any](t T) *T {
+	return &t
 }

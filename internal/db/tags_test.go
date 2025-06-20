@@ -17,9 +17,9 @@ func TestGetTags(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	repository := NewRepository(db)
+	repository := NewNewsRepo(db)
 
-	got, err := repository.Tags(ctx, []int{1, 2})
+	got, err := repository.TagsByFilters(ctx, &TagSearch{IDs: []int{1, 2}}, PagerNoLimit)
 	if err != nil {
 		t.Errorf("GetTags() error = %v", err)
 		return

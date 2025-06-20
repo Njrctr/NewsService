@@ -34,6 +34,7 @@ func main() {
 	}
 
 	a := app.New(cfg, dbconn)
+	a.InitServer()
 	go func() {
 		if err := a.Run(ctx); err != nil {
 			log.Fatal(err)

@@ -8,6 +8,7 @@ require (
 	github.com/go-pg/urlstruct v1.0.1
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/labstack/echo/v4 v4.13.4
+	github.com/prometheus/client_golang v1.22.0
 	github.com/stretchr/testify v1.10.0
 	github.com/vmkteam/rpcgen/v2 v2.4.4
 	github.com/vmkteam/zenrpc-middleware v1.2.0
@@ -32,7 +33,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.64.0 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect

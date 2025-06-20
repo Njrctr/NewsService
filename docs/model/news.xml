@@ -28,6 +28,9 @@
             </Attributes>
             <Searches>
                 <Search Name="IDs" AttrName="ID" SearchType="SEARCHTYPE_ARRAY"></Search>
+                <Search Name="TagID" AttrName="TagIDs" SearchType="SEARCHTYPE_ARRAY_CONTAINS"></Search>
+                <Search Name="PublishedAtLe" AttrName="PublishedAt" SearchType="SEARCHTYPE_LE"></Search>
+                <Search Name="PublishedAtLe" AttrName="StatusID" SearchType="SEARCHTYPE_LE"></Search>
                 <Search Name="TitleILike" AttrName="Title" SearchType="SEARCHTYPE_ILIKE"></Search>
                 <Search Name="ForewordILike" AttrName="Foreword" SearchType="SEARCHTYPE_ILIKE"></Search>
                 <Search Name="ContentILike" AttrName="Content" SearchType="SEARCHTYPE_ILIKE"></Search>

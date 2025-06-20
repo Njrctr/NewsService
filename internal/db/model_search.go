@@ -113,6 +113,8 @@ type NewsSearch struct {
 	PublishedAt   *time.Time
 	StatusID      *int
 	IDs           []int
+	TagID         *int
+	PublishedAtLe *time.Time
 	TitleILike    *string
 	ForewordILike *string
 	ContentILike  *string
@@ -152,6 +154,12 @@ func (ns *NewsSearch) Apply(query *orm.Query) *orm.Query {
 	}
 	if len(ns.IDs) > 0 {
 		Filter{Columns.News.ID, ns.IDs, SearchTypeArray, false}.Apply(query)
+	}
+	if ns.TagID != nil {
+		Filter{Columns.News.TagIDs, *ns.TagID, SearchTypeArrayContains, false}.Apply(query)
+	}
+	if ns.PublishedAtLe != nil {
+		Filter{Columns.News.PublishedAt, *ns.PublishedAtLe, SearchTypeLE, false}.Apply(query)
 	}
 	if ns.TitleILike != nil {
 		Filter{Columns.News.Title, *ns.TitleILike, SearchTypeILike, false}.Apply(query)

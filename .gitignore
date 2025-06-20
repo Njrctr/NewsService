@@ -5,3 +5,4 @@ newsServiceSQL.sql
 .idea*
 genna.toml
 .tool-versions
+/vendor

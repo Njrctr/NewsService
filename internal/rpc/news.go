@@ -2,9 +2,13 @@ package rpc
 
 import (
 	"context"
+	"github.com/go-pg/pg/v10"
+	middleware "github.com/vmkteam/zenrpc-middleware"
 	"github.com/vmkteam/zenrpc/v2"
+	"log"
 	"net/http"
 	"news-service/internal/newsportal"
+	"os"
 )
 
 //go:generate zenrpc
@@ -44,7 +48,7 @@ func NewCategoryService(manager *newsportal.Manager) *CategoryService {
 	}
 }
 
-func Init(service *newsportal.Manager) zenrpc.Server {
+func Init(service *newsportal.Manager, dbconn *pg.DB) zenrpc.Server {
 	rpc := zenrpc.NewServer(zenrpc.Options{
 		ExposeSMD: true,
 		AllowCORS: true,
@@ -52,6 +56,24 @@ func Init(service *newsportal.Manager) zenrpc.Server {
 	rpc.Register("news", NewNewsService(service))
 	rpc.Register("categories", NewCategoryService(service))
 	rpc.Register("tags", NewTagService(service))
+
+	elog := log.New(os.Stderr, "E", log.LstdFlags|log.Lshortfile)
+	dlog := log.New(os.Stderr, "D", log.LstdFlags|log.Lshortfile)
+	allowDebug := func(param string) middleware.AllowDebugFunc {
+		return func(req *http.Request) bool {
+			return req.FormValue(param) == "true"
+		}
+	}
+
+	rpc.Use(
+
+		middleware.WithDevel(true),
+		middleware.WithAPILogger(dlog.Printf, middleware.DefaultServerName),
+		middleware.WithTiming(true, allowDebug("d")),
+		middleware.WithMetrics(middleware.DefaultServerName),
+		middleware.WithSQLLogger(dbconn, true, allowDebug("d"), allowDebug("s")),
+		middleware.WithErrorLogger(elog.Printf, middleware.DefaultServerName),
+	)
 
 	return rpc
 }
