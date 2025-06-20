@@ -21,13 +21,13 @@ import (
 
 type App struct {
 	Cfg  *Config
-	DB   *pg.DB
+	DB   db.DB
 	rest *rest.Handler
 	rpc  zenrpc.Server
 }
 
-func New(cfg *Config, dbconn *pg.DB) *App {
-	repository := db.NewRepository(dbconn)
+func New(cfg *Config, dbconn db.DB) *App {
+	repository := db.NewNewsRepo(dbconn)
 	services := newsportal.NewManager(repository)
 	handlers := rest.New(services)
 

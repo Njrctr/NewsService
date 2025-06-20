@@ -18,7 +18,7 @@ func TestService_GetCategories(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	repository := db.NewRepository(dbconn)
+	repository := db.NewNewsRepo(dbconn)
 	s := NewManager(repository)
 
 	got, err := s.Categories(ctx)

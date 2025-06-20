@@ -6,16 +6,16 @@ import (
 )
 
 type Manager struct {
-	repo *db.Repository
+	repo db.NewsRepo
 }
 
-func NewManager(repo *db.Repository) *Manager {
+func NewManager(repo db.NewsRepo) *Manager {
 	return &Manager{repo: repo}
 }
 
 // The Tags return slice of Tag
 func (s *Manager) Tags(ctx context.Context) ([]Tag, error) {
-	tags, err := s.repo.Tags(ctx, nil)
+	tags, err := s.repo.TagsByFilters(ctx, nil, db.PagerNoLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (s *Manager) Tags(ctx context.Context) ([]Tag, error) {
 
 // The Categories return slice of Category
 func (s *Manager) Categories(ctx context.Context) ([]Category, error) {
-	cats, err := s.repo.GetCategories(ctx)
+	cats, err := s.repo.CategoriesByFilters(ctx, nil, db.PagerNoLimit)
 	if err != nil {
 		return nil, err
 	}

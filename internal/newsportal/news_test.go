@@ -18,7 +18,7 @@ func TestGetNewsByID(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	repository := db.NewRepository(dbconn)
+	repository := db.NewNewsRepo(dbconn)
 	services := NewManager(repository)
 
 	got, err := services.NewsByID(ctx, 1)
@@ -39,12 +39,12 @@ func TestNewsService_GetNews(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	repository := db.NewRepository(dbconn)
+	repository := db.NewNewsRepo(dbconn)
 	services := NewManager(repository)
 
 	filter := &NewsFilter{
 		CategoryID: 1,
-		TagID:      0,
+		TagID:      1,
 	}
 
 	got, err := services.NewsByFilters(ctx, filter, 0, 5)

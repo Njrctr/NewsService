@@ -5,6 +5,7 @@ go 1.24.4
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/go-pg/pg/v10 v10.14.0
+	github.com/go-pg/urlstruct v1.0.1
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/stretchr/testify v1.10.0
@@ -16,6 +17,7 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/codemodus/kace v0.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/getsentry/sentry-go v0.32.0 // indirect
 	github.com/getsentry/sentry-go/echo v0.32.0 // indirect

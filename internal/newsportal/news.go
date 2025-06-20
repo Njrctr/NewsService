@@ -7,7 +7,7 @@ import (
 
 // The NewsByID return News with included slice of Tag
 func (s *Manager) NewsByID(ctx context.Context, id int) (*News, error) {
-	news, err := s.repo.NewsByID(ctx, id)
+	news, err := s.repo.NewsByID(ctx, id, s.repo.FullNews()) // ???
 	if err != nil {
 		return nil, err
 	} else if news == nil {
@@ -19,7 +19,7 @@ func (s *Manager) NewsByID(ctx context.Context, id int) (*News, error) {
 	if len(news.TagIDs) == 0 {
 		return req, nil
 	}
-	tags, err := s.repo.Tags(ctx, news.TagIDs)
+	tags, err := s.repo.TagsByFilters(ctx, &db.TagSearch{IDs: news.TagIDs}, db.PagerNoLimit)
 	if err != nil {
 		return nil, err
 	} else if len(tags) == 0 {
@@ -36,8 +36,8 @@ func (s *Manager) NewsByID(ctx context.Context, id int) (*News, error) {
 // The NewsByFilters return slice of News by NewsFilter, pageNum, pageSize. Include slice Tag into news items
 func (s *Manager) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum, pageSize int) ([]News, error) {
 
-	offset, limit := pagination(pageNum, pageSize)
-	news, err := s.repo.NewsByFilters(ctx, &db.NewsFilter{CategoryID: filter.CategoryID, TagID: filter.TagID}, offset, limit)
+	//news, err := s.repo.NewsByFilters(ctx, &db.NewsFilter{CategoryID: filter.CategoryID, TagID: filter.TagID}, offset, limit)
+	news, err := s.repo.NewsByFilters(ctx, &db.NewsSearch{CategoryID: &filter.CategoryID}, db.NewPager(pageNum, pageSize), s.repo.FullNews())
 	if err != nil {
 		return nil, err
 	} else if len(news) == 0 {
@@ -56,7 +56,8 @@ func (s *Manager) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum
 		}
 	}
 
-	tags, err := s.repo.Tags(ctx, tagIds)
+	//TODO обработать поведение если тегов нет
+	tags, err := s.repo.TagsByFilters(ctx, &db.TagSearch{IDs: tagIds}, db.PagerNoLimit)
 	if err != nil {
 		return nil, err
 	} else if len(tags) == 0 {
@@ -80,7 +81,8 @@ func (s *Manager) NewsByFilters(ctx context.Context, filter *NewsFilter, pageNum
 }
 
 func (s *Manager) NewsCount(ctx context.Context, filter *NewsFilter) (int, error) {
-	count, err := s.repo.NewsCount(ctx, &db.NewsFilter{CategoryID: filter.CategoryID, TagID: filter.TagID})
+	//count, err := s.repo.CountNews(ctx, &db.NewsSearch{CategoryID: filter.CategoryID, TagID: filter.TagID})
+	count, err := s.repo.CountNews(ctx, &db.NewsSearch{CategoryID: &filter.CategoryID})
 	if err != nil {
 		return 0, err
 	}
